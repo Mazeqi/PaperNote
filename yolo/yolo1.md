@@ -64,5 +64,10 @@
 - 最后一层同时预测类别概率和box坐标。用图片的width和height对box的width和height进行正则化，所以它们的值在 $[0,1]$之间。将边界框x和y坐标参数化为网格单元位置的偏移量，因此它们也在0和1之间有界。
 - 最后一层使用线性激活函数，其他层使用下面的泄漏整流线性激活函数
 
-​															$$ \phi(x) = \begin{cases}x \text{,        if  x > 0} \\ 0.1x \text{,   otherwise}\end{cases} $$
+​														$$ \phi(x) = \begin{cases}x \text{,        if  x > 0} \\ 0.1x \text{,   otherwise}\end{cases} $$（2）
+
+- 由于平方和误差容易最优化，所以将其作为loss，然而它不能完全符合我们最大化 average precision的目标。它对定位误差和分类误差的权重相等，但分类误差可能不是最理想的。并且，在每一张图片中，许多单元格并没有包含对象，这使得 confidence socres 变成0，通常会压到没有包含对象格的梯度。这可能会导致模型不稳定，导致训练在早期出现分歧。
+- 为了解决loss的问题，对没有包含对象的格子增加来自box坐标预测的loss并且减少来自置信预测的loss，使用两个参数 $\lambda_{coord}$和$\lambda_{noobj}$ 来完成，设置$\lambda_{coord} = 5$ 和$\lambda_{noobj}= 5$ 
+- 平方和误差相当于large box 和 small box 中的weights errors ，我们的误差公式反映大盒子里的小偏差比小盒子里的小偏差更重要。为了部分解决这个问题，我们预测边界框的宽度和高度的平方根，而不是直接预测宽度和高度。
+- 选择 IOU值最高的box作为某个单元格预测的box。
 
