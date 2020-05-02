@@ -1,5 +1,3 @@
-
-
 [TOC]
 
 ## 简介
@@ -27,3 +25,28 @@
 ## yolo设计理念
 
 ![](./img/yolo_process.jpg)
+
+- 将图片分成$S \times S$ 的网格，如果目标对象的中心落在某个单元格，那么该单元格就要负责检测那个对象
+- 每个单元格会预测数个bounding boxes 出来，并且为这些box各自附上一个confidence score，confidence scores反映了box包含了一个对象并且box的accuracy，把confidence定义为 $Pr(Object) * IOU^{truth}_{pred}$ ,confidece包含两个方面，一个是这个边界框含有目标的可能性大小，二是这个边界框的准确度。前者为$Pr(Object)$ ，当边界框是背景时（即不包含目标），此时$Pr(Object)=0$ ,而包含目标时则为1。边界框的准确度用IOU来检测。
+- 每一个bounding box 右五个预测值组成：x，y，w，h，confidence。(x，y)坐标表示box的中心，(x，y)是相对于每个单元格左上角坐标点的偏移值。width和height是box的宽和长，但是值是相对于整个图片的宽与高的比例，这样子前4个元素的大小在$[0,1]$ 。confidence表示predicted box和any ground truth box 之间的IOU
+- 分类问题：每个单元格预测 $ C$  个类别的概率值，$ Pr(Class_i|Object)$ 这些概率值取决于包含该对象的单元格。不管一个单元格预测多少个边界框，其只预测一组类别概率值，这是Yolo算法的一个缺点。
+- 现在可以得到各个边界框的类别置信度（class-confidence scores）,这些socres同时编码了box类别的概率和box的accuracy
+  - $Pr(Class_i|Object) * Pr(Object) * IOU^{truth}_pred = Pr(Class_i) * IOU^{truth}_{pred}  (1)$
+
+
+
+![](./img/grid_cell.jpg)
+
+- 图中的预测被编码为一个tensor,它的形状为
+  - $S \times S \times(B*5+C)$
+
+- 在PASCAL VOC上评估YOLO， 使用S = 7，B = 2。PASCAL VOC有20个被标记的classes ，所以C = 20。所以最后的预测是一个7 * 7 * 30的tensor
+
+
+
+## 网络设计
+
+
+
+![](./img/network_design.jpg).
+
