@@ -114,6 +114,8 @@
 
 
 
+- yolo 定位目标做的比较不好。定位错误的超过其他的错误的总和。Fast R-CNN 定位的错误比yolo少，但是与背景的区分度错误却比yolo多。
+
 ![](./img/error_analysis.jpg)
 
 - Correct：类别正确，IOU>0.5；（准确度）
