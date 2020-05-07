@@ -1,5 +1,11 @@
 [TOC]
 
+- 论文链接：http://arxiv.org/abs/1506.02640
+- 代码下载：https://github.com/pjreddie/darknet
+- 翻译参考：
+  - https://mp.weixin.qq.com/s/E12qr8Z4PkeBE7B90A8Tvg
+  - https://zhuanlan.zhihu.com/p/32525231
+
 ## 简介
 
 ### yolo与传统的检测算法的不同 
@@ -32,6 +38,7 @@
 - 分类问题：每个单元格预测 c 个类别的概率值，$ Pr(Class_i|Object)$ 这些概率值取决于包含该对象的单元格。不管一个单元格预测多少个边界框，其只预测一组类别概率值，这是Yolo算法的一个缺点。
 - 现在可以得到各个边界框的类别置信度（class-confidence scores）,这些socres同时编码了box类别的概率和box的accuracy
   - $Pr(Class_i|Object) * Pr(Object) * IOU^{truth}_{pred} = Pr(Class_i) * IOU^{truth}_{pred}  (1)$
+  - 得到每个box的class-specific confidence score以后，设置阈值，滤掉得分低的boxes，对保留的boxes进行NMS处理，就得到最终的检测结果。
 
 
 
@@ -67,7 +74,7 @@
 ​														$$ \phi(x) = \begin{cases}x \text{,        if  x > 0} \\ 0.1x \text{,   otherwise}\end{cases} $$（2）
 
 - 由于平方和误差容易最优化，所以将其作为loss，然而它不能完全符合我们最大化 average precision的目标。它对定位误差和分类误差的权重相等，但分类误差可能不是最理想的。并且，在每一张图片中，许多单元格并没有包含对象，这使得 confidence socres 变成0，通常会压到没有包含对象格的梯度。这可能会导致模型不稳定，导致训练在早期出现分歧。为了解决loss的问题，增加来自box坐标预测的loss并且减少**对没有包含对象**的格子来自置信预测的loss，使用两个参数 $\lambda_{coord}$和$\lambda_{noobj}$ 来完成，设置$\lambda_{coord} = 5$ 和$\lambda_{noobj}= 0.5$ 。其他权重值均为1。
-- 平方和误差相当于large box 和 small box 中的weights errors ，我们的误差指标应反映出，大盒子中的小偏差比小盒子中的小偏差要小。为了部分解决这个问题，我们预测边界框的宽度和高度的平方，而不是直接预测宽度和高度，即最后预测值变为$(x, y,\sqrt{w},\sqrt{h})$ ，如果一个单元格内存在多个目标，这时候Yolo算法就只能选择其中一个来训练，这也是Yolo算法的缺点之一。
+- 平方和误差相当于large box 和 small box 中的weights errors 。对不同大小的box预测中，相比于大box预测偏一点，小box预测偏一点肯定更不能被忍受的。而sum-square error loss中对同样的偏移loss是一样。为了部分解决这个问题，**我们预测边界框的宽度和高度的平方根**，而不是直接预测宽度和高度，即最后预测值变为$(x, y,\sqrt{w},\sqrt{h})$ ，如果一个单元格内存在多个目标，这时候Yolo算法就只能选择其中一个来训练，这也是Yolo算法的缺点之一。
 - 选择 IOU值最高的box作为某个单元格预测的box。
 - 对以下的loss function进行最优化
   - 第一项是边界框中心坐标的误差项，第二项是边界框的高与宽的误差项，第三项是包含目标的边界框的置信度误差项。第四项是不包含目标的边界框的置信度误差项。而最后一项是包含目标的单元格的分类误差项。
