@@ -106,3 +106,19 @@
 
 ![](./img/yolo_NMS.jpg)
 
+### 算法性能分析
+
+- 这里Yolo与其它检测算法做了对比，包括DPM，R-CNN，Fast R-CNN以及Faster R-CNN。其对比结果如表1所示。与实时性检测方法DPM对比，可以看到Yolo算法可以在较高的mAP上达到较快的检测速度，其中Fast Yolo算法比快速DPM还快，而且mAP是远高于DPM。但是相比Faster R-CNN，Yolo的mAP稍低，但是速度更快。
+
+![](./img/analysis_form.jpg)
+
+
+
+![](./img/error_analysis.jpg)
+
+- Correct：类别正确，IOU>0.5；（准确度）
+
+- Localization：类别正确，0.1 < IOU<0.5（定位不准）；
+- Similar：类别相似，IOU>0.1；
+- Other：类别错误，IOU>0.1；
+- Background：对任何目标其IOU<0.1。（误把背景当物体）
