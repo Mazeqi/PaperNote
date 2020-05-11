@@ -51,7 +51,7 @@ $$
   - yolo的卷积层使得图片缩小了32倍，输入一张416的图片，我们可以得到一张13*13的特征图
   - 将类别预测机制从空间定位中分离，并且为每个锚框预测类别和对象。对象性预测仍然预测ground truth和预测box的IOU，而类预测则预测给定一个对象的类的条件概率。带有锚框的yolo预测了不止一千个box。
 
-- Dimension Clusters（yolo在使用anchor box时遭遇了两个问题，这是第一个）：
+- Dimension Clusters（yolo在使用anchor box时遭遇了两个问题，第一个是：box的大小是手动输入的）：
 
   - box的大小是手动输入的，网络可以学习去调整出适合的box，但如果我们为网络选择更好的先验，我们可以让网络更容易地学会预测好的检测
 
@@ -62,3 +62,28 @@ $$
   - 下表中，比较了使用平均误差（SSE : error sum of suqares）、和上面距离度量的 k-means，以及手动输入的anchor boxes，从表中可以看出，使用IOU-k-means获得5个先验（5种长宽比的锚框）的情况和使用9个手动输入的情况差不多，但是当使用IOU-k-means来获得9个先验时，avg IOU 比手动输入anchor box 高很多。
 
     ![](./img/average_IOU_priors.jpg)
+
+- Direct location prediction（使用anchor box 遇到的第二个问题 ：模型的不稳定性）：
+
+  - 大多数的不稳定性来自于预测 box的位置 $(x，y)$  。在区域提议网络中，网络预测 values  $t_x$ 和 $t_y$ 并且中心坐标 $(x, y)$ 被定义为
+
+  ​          
+  $$
+  x = (t_x * w_{\alpha}) - x_{\alpha}\\
+  y = (t_y * h_{\alpha}) - y_{\alpha}
+  $$
+  
+
+  - 例如：一个预测 $t_x = 1$ 将会把box 移动到 anchor box 宽的右边， 预测如果为$t_x = -1$ 将会把box 移动到左边。此公式不是强制性的，所以anchor box 最终可以出现在 image 的任何地方，不管box的位置是什么。
+  - yolov2并没有和区域提议网络一样，预测中心坐标相对于真实中心坐标的偏移值，而是跟yolo中一样，预测相对于网格单元的位置坐标。这使得值降到了0和1之间。并使用逻辑激活来限制网络的预测在这个范围。
+  - 网络在输出的特征图的每个单元中预测了五个 bounding box ，网络给每个bounding box 预测了5个坐标 $t_x, t_y, t_w, t_h,t_o $ 如果单元格从图片的左上角偏移了 $(c_x, c_y)$ ， 并且优先的bounding box 有 width  和 height $p_w, p_h$，然后预测关联到：
+
+$$
+b_x = \sigma(t_x) + c_x \\
+b_y = \sigma(t_y) + c_y \\
+b_w = p_w e^{t_w} \\
+b_h = p_h e^{t_h} \\
+Pr(object) * IOU(b, object) = \sigma(t_o)
+$$
+
+![](./img/dimension_priors.jpg)
