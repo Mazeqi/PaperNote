@@ -162,6 +162,6 @@ $$
   $$
 
   - 其中假设了一张图片包含一个对象，即 $ Pr(physical \ \ object) = 1$
-  - 
+  - xx
 
 ![](./img/ImageNet_vs_WordTree.jpg)
