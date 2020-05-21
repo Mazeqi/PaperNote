@@ -4,6 +4,7 @@
 
 - 大多数检测方法仍然局限于一小部分对象。
 - 与分类和标记的数据集比较起来，现在对象检测的数据集还是有限的。
+- 参考：https://zhuanlan.zhihu.com/p/47575929
 
 ## 锚框简介
 
@@ -137,31 +138,33 @@ $$
 
 - hierarchical  classification
 
-  - ImageNet的标签来从WordNet上拉取而来，在WordNet中，“诺福克梗”和“约克郡梗”是terrier的一种，terrier是猎犬的一种，terrier是狗的一种，Yorkshire terrier是犬科动物的一种。
+  - ImageNet的标签来从WordNet上拉取而来，在WordNet中，“诺福克梗”和“约克郡梗”是terrier的一种，terrier是猎犬的一种，terrier是狗的一种，Yorkshire terrier是犬科动物的一种。WordNet的结构是一个有向图，不是一棵树。例如 狗 是犬科动物的一种，也是家畜的一种，在WordNet中它们是同义词。yolov2不使用完整的图形结构而是把问题简化为建立一个分层次的树。
 
-  - WordNet的结构是一个有向图，不是一棵树。例如 狗 是犬科动物的一种，也是家畜的一种，在WordNet中它们是同义词。yolov2不使用完整的图形结构而是把问题简化为建立一个分层次的树。
-
-  - 在yolov2中，树的根是“physical object”，许多的同义词只有一条路径到根，首先添加这些词。然后再迭代地检查不止一条路径的，如果一个概念有两条路径到根，选择那条较短的。
-
-  - 最后的结果是一个WordTree，一个视觉概念的分层的模型，为了用WordTree表示分类，我们预测每个节点的条件概率，即给定该synset的每个下位元的概率。如“terrier”结点的预测：
-    $$
+  - 在yolov2中，树的根是“physical object”，许多的同义词只有一条路径到根，首先添加这些词。然后再迭代地检查不止一条路径的，如果一个概念有两条路径到根，选择那条较短的。最后的结果是一个WordTree，一个视觉概念的分层的模型，为了用WordTree表示分类，我们预测每个节点的条件概率，即给定该synset的每个下位元的概率。如“terrier”结点的预测：
+  $$
     Pr(Norfolk terrier|terrier) \\
-    Pr(Yorkshire terrier|terrier) \\
+  Pr(Yorkshire terrier|terrier) \\
     Pr(Bedlingto terrier|terrier) \\
     \ldots
     $$
-
+  
   - 如果想要计算某个结点的绝对概率，仅仅只需要顺着结点到根的路径，并把条件概率相乘。如果我们想要知道如果一张照片是属于“Norfolk terrier”我们计算
-
+  
   $$
-  Pr(Norfolk \ \ terrier) = Pr(Norfolk \ \ terrier|terrier) \\
+Pr(Norfolk \ \ terrier) = Pr(Norfolk \ \ terrier|terrier) \\
   *Pr(Terrier|hunting \ \ dong) \\
-  * \ldots*\\
+* \ldots*\\
   *Pr(mammal | animal)\\
   *Pr(animal|physical \ \ object)
   $$
-
+  
   - 其中假设了一张图片包含一个对象，即 $ Pr(physical \ \ object) = 1$
-  - xx
+  - 大多数的模型用一个非常大的softmax来估计目标对象的概率分布，而在WordTree中，预测了多个softmax。yolov2在Darknet-19模型上验证提出的方法，并且用ImageNet的1000个类别建立了WordTree。
+  - 为了建立WordTree1k，增加了许多中间结点，它们使得标签空间从1000扩展到了1369。在训练的时候传播了从结点到根的标签，所以如果一张图被标记为“Norfolk terrier”，也将会得到“dog”和“mammal”等标签。为了计算条件概率，模型预测了1369个值的一个向量，并计算了所有同概念下位元的系统集的softmax![](./img/ImageNet_vs_WordTree.jpg)
 
-![](./img/ImageNet_vs_WordTree.jpg)
+  - 概率计算的公式也可以用于检测。现在，不是假设每张图片有一个对象，而是使用yolov2对象预测器来得到Pr(physical object)的值。检测器预测了一个bounding box 和树的概率。沿着树向下遍历，在每一个分划中取最高的置信路径，直到到达某个阈值，然后预测该对象类，最高的置信路径的值要达到阈值才能认定其中有对象。
+  - WordTree可以用来组合多个数据集，下图组合了ImageNet和COCO![](./img/combine_tree.jpg)
+
+- Joint classification and detection
+  - 
+
