@@ -35,4 +35,33 @@
   - Cutout：在图片中随机旋转一个矩形的区域，补上0值
   - **Auto-augment**：基于automl技术，采用自动搜索算法来寻找平移、旋转和剪切等图像处理函数的融合策略
 
+
+## Backbone
+
+- FastReID实现了三种不同的骨干网络，ResNet、ResNeXt、ResNeSt。
+- 在骨干网络中增加了attention-like non-local 模块和 IBN（instance batch normalization）模块来得到健壮的特征
+
+
+
+## Aggregation
+
+- 聚集层的目的是把骨干网络生成的特征图聚集成一个全局特征。
+
+- 四种聚集方法：
+
+  - max pooling、average pooling、GeM Pooling 和 attention pooling
+  - 池化层的输入：$ X \in R^{W \times H \times C} $ ,  $W ,H ,C$ 分别是特征图的宽、高和通道
+  - 池化层的输出：$f \in R^{1 \times 1 \times C}$ ，全局向量$ f = [f_1,\dots,f_c,\dots,f_C]$ 
+  - $\alpha$ 是一个控制系数，$W_c$ 是softmax注意权重
+
   
+
+$$
+Max Pooling: f_c = \max \limits_{x \in X_c} \ x        \\
+Avg Pooling: f_c = \frac{1}{|X_c|} \sum_{x \in X_c} x  \\
+Gem Pooling: f_c = (\frac{1}{|X_c|} \sum_{x \in X_c} x^{\alpha})^{\frac{1}{\alpha}} \\
+Attention Pooling: f_c = \frac{1}{|X_c * W_c|} \sum_{x \in X_c, w\in W_c} w * x
+$$
+
+## Head
+
