@@ -12,6 +12,175 @@ images = tf.placeholder(tf.float32, [None, self.image_size, self.image_size, 3],
 
 
 
+## tf.constant
+
+```python
+# 生成常量
+a = tf.constant([[1, 2, 3], [4, 5, 6]])
+```
+
+
+
+## tf.Variable   tf.get_variable
+
+- [参考](https://blog.csdn.net/gg_18826075157/article/details/78368924)
+
+```python
+# 1.图变量的初始化方法
+# 在TensorFlow的世界里，变量的定义和初始化是分开的，所有关于图变量的赋值和计算都要通过tf.Session的run来进行。想要将所有图变量进行集体初始化时应该使用tf.global_variables_initializer。
+x = tf.Variable(3, name='x')
+sess = tf.Session()
+sess.run(tf.global_variables_initializer())
+
+
+# 2.两种定义图变量的方法
+
+# tf.Variable
+# trainab为true，会把它加入到GraphKeys.TRAINABLE_VARIABLES，才能对它使用Optimizer
+tf.Variable.init(initial_value, trainable=True, collections=None, validate_shape=True, name=None)
+
+v = tf.Variable(3, name='v')
+v2 = v.assign(5)
+sess = tf.InteractiveSession()
+sess.run(v.initializer)
+# 输出3
+sess.run(v)
+
+
+# tf.get_variable
+# tf.get_variable跟tf.Variable都可以用来定义图变量，但是前者的必需参数（即第一个参数）并不是图变量的初始值，而是图变量的名称。
+init = tf.constant_initializer([5])
+x = tf.get_variable('x', shape=[1], initializer=init)
+sess = tf.InteractiveSession()
+sess.run(x.initializer)
+sess.run(x)
+
+
+
+```
+
+
+
+## tf.global_variables
+
+```python
+# tf.global_variables或者tf.all_variables都是获取程序中的变量
+variables = tf.global_variables()
+variables[0].name
+variables[1].name
+
+#yolov2
+self.variable_to_restore = tf.global_variables()
+self.saver = tf.train.Saver(self.variable_to_restore)
+```
+
+
+
+## tf.variable_scope  tf.name_scope
+
+```python
+# TensorFlow的命名空间分为两种，tf.variable_scope和tf.name_scope。
+
+#1. tf.variable_scope
+-------------------------------------------------------------------
+
+# 当使用tf.get_variable定义变量时，如果出现同名的情况将会引起报错
+# 而对于tf.Variable来说，却可以定义“同名”变量
+
+with tf.variable_scope('scope'):
+     v1 = tf.get_variable('var', [1])
+     v2 = tf.get_variable('var', [1])
+     #ValueError: Variable scope/var already exists, disallowed. Did you mean to set reuse=True in VarScope? Originally defined at:
+        
+     v1 = tf.Variable(1, name='var')
+     v2 = tf.Variable(2, name='var')
+     # 但是把这些图变量的name属性打印出来，就可以发现它们的名称并不是一样的。
+        
+# 如果想使用tf.get_variable来定义另一个同名图变量，可以考虑加入新一层scope，比如：
+with tf.variable_scope('scope1'):
+	v1 = tf.get_variable('var', shape=[1])
+    with tf.variable_scope('scope2'):
+         v2 = tf.get_variable('var', shape=[1])
+
+# yolov2
+with tf.variable_scope('',reuse=tf.AUTO_REUSE):
+    main()
+        
+        
+        
+#2 tf.name_scope
+#-----------------------------------------------------------------------------    
+
+# 当tf.get_variable遇上tf.name_scope，它定义的变量的最终完整名称将不受这个tf.name_scope的影响
+ with tf.variable_scope('v_scope'):
+ 	 with tf.name_scope('n_scope'):
+  		 x = tf.Variable([1], name='x')
+   	     y = tf.get_variable('x', shape=[1], dtype=tf.int32)
+ 		 z = x + y
+ # x.name, y.name, z.name
+ # ('v_scope/n_scope/x:0', 'v_scope/x:0', 'v_scope/n_scope/add:0')
+    
+    
+    
+#3 图变量的复用
+#------------------------------------------------------------------------------
+
+# 如果我们正在定义一个循环神经网络RNN，想复用上一层的参数以提高模型最终的表现效果
+ with tf.variable_scope('scope'):
+          v1 = tf.get_variable('var', [1])
+          tf.get_variable_scope().reuse_variables()
+          v2 = tf.get_variable('var', [1])
+# v1.name, v2.name
+# ('scope/var:0', 'scope/var:0')
+
+# 或者
+with tf.variable_scope('scope'):
+     v1 = tf.get_variable('x', [1])
+        
+with tf.variable_scope('scope', reuse=True):
+    v2 = tf.get_variable('x', [1])
+#  v1.name, v2.name
+#  ('scope/x:0', 'scope/x:0') 
+
+
+
+# 4 图变量的种类
+# --------------------------------------------------------------------------
+
+# TensorFlow的图变量分为两类：local_variables和global_variables。
+# 如果我们想定义一个不需要长期保存的临时图变量，可以向下面这样定义它：
+with tf.name_scope("increment"):
+	 zero64 = tf.constant(0, dtype=tf.int64)
+	 current = tf.Variable(zero64, name="incr", trainable=False, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+
+```
+
+
+
+## random number
+
+- [参考](https://blog.csdn.net/yjk13703623757/article/details/77075711)
+
+```python
+
+tf.random_normal(shape, mean=0.0, stddev=1.0, dtype=tf.float32, seed=None, name=None)
+
+tf.truncated_normal(shape, mean=0.0, stddev=1.0, dtype=tf.float32, seed=None, name=None)
+
+tf.random_uniform(shape, minval=0.0, maxval=1.0, dtype=tf.float32, seed=None, name=None)
+
+tf.random_shuffle(value, seed=None, name=None)
+
+tf.random_crop(value, size, seed=None, name=None) 
+
+tf.multinomial(logits, num_samples, seed=None, name=None) 
+
+tf.random_gamma(shape, alpha, beta=None, dtype=tf.float32, seed=None, name=None)
+
+```
+
+
+
 ## tf.tile
 
 ```python
@@ -93,7 +262,7 @@ out=tf.layers.batch_normalization(out,axis=-1,momentum=0.9,training=False,name=n
 
 
 
-## tf.shape tensor.getshape
+## tf.shape  tensor.get_shape
 
 ```python
 # 返回元组，不能放到sess.run()里面
@@ -113,6 +282,9 @@ tf.shape()
 # tf.concat是沿某一维度拼接shape相同的张量，拼接生成的新张量维度不会增加。而tf.stack是在新的维度上拼接，拼接后维度加1
 ab1 = tf.concat([a,b],axis=0)
 ab2 = tf.stack([a,b], axis=0)
+
+#yolov2合并几个loss
+loss = tf.concat([coo_loss, con_loss, pro_loss], axis = 4)
 ```
 
 
@@ -125,6 +297,132 @@ tf.clip_by_value(A, min, max)：
 ```
 
 
+
+## tf.reduce_max tf.reduce_mean...
+
+```python
+#得到最大值 reduction_indices在哪个纬度进行
+tf.reduce_max(input_tensor, reduction_indices=None, keep_dims=False, name=None)
+
+# 求和
+tf.reduce_sum(input_tensor,axis=None,keepdims=None,name=None,reduction_indices=None,keep_dims=None）
+
+# 求平均
+tf.reduce_mean(input_tensor,reduction_indices=None,keep_dims=False,name=None)
+```
+
+
+
+## tf.expend_dims tf.reshape
+
+```python
+tf.expand_dims(tensor, dim, name)
+# 在一维度上拓展
+one_img = tf.expand_dims(one_img, 0)
+
+#reshape也可以达到相同效果，但是有些时候在构建图的过程中，placeholder没有被feed具体的值，这时就会包下面的错误：TypeError: Expected binary or unicode string, got 1
+tf.reshape(input, shape=[])
+```
+
+
+
+## tf.squeeze
+
+```python
+# 从tensor中删除所有大小是1的维度
+# 给定张量输入，此操作返回相同类型的张量，并删除所有尺寸为1的尺寸。 如果不想删除所有尺寸1尺寸，可以通过指定squeeze_dims来删除特定尺寸1尺寸。
+squeeze(input,axis=None,name=None,squeeze_dims=None)
+```
+
+
+
+## tf.train.exponential_decay
+
+```python
+# 调整学习率
+tf.train.exponential_decay(learning_rate, global_, decay_steps, decay_rate, staircase=True/False)
+
+# yolov2
+learn_rate = tf.train.exponential_decay(self.initial_learn_rate, self.global_step, 20000, 0.1, name='learn_rate')
+```
+
+
+
+## tf.train.AdamOptimizer(with else)
+
+- [参考](https://www.jianshu.com/p/e6e8aa3169ca)
+
+```python
+tf.train.AdamOptimizer.__init__(
+	learning_rate=0.001, 
+	beta1=0.9, 
+	beta2=0.999, 
+	epsilon=1e-08, 
+	use_locking=False, 
+	name='Adam'
+)
+
+# yolov2
+optimizer = tf.train.AdamOptimizer(learning_rate=self.learn_rate).minimize(self.yolo.total_loss, global_step=self.global_step)
+```
+
+
+
+## tf.control_dependencies
+
+- [参考](https://blog.csdn.net/liuweiyuxiang/article/details/79952493)
+
+```python
+# session在运行d、e之前会先运行a、b、c。在with tf.control_dependencies之内的代码块受到顺序控制机制的影响。
+with tf.control_dependencies([a, b, c]):
+	d = ...
+    e = ...
+
+#yolov2
+self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learn_rate).minimize(self.yolo.total_loss, global_step=self.global_step)
+
+self.average_op = tf.train.ExponentialMovingAverage(0.999).apply(tf.trainable_variables())
+
+with tf.control_dependencies([self.optimizer]):
+    self.train_op = tf.group(self.average_op)
+```
+
+
+
+## tf.train.ExponentialMovingAverage
+
+- [参考](https://blog.csdn.net/UESTC_C2_403/article/details/72235334)
+
+```python
+# tf.train.ExponentialMovingAverage这个函数用于更新参数，就是采用滑动平均的方法更新参数。这个函数初始化需要提供一个衰减速率（decay），用于控制模型的更新速度。这个函数还会维护一个影子变量（也就是更新参数后的参数值），这个影子变量的初始值就是这个变量的初始值，影子变量值的更新方式如下：
+# shadow_variable = decay * shadow_variable + (1-decay) * variable
+# shadow_variable是影子变量，variable表示待更新的变量，也就是变量被赋予的值，decay为衰减速率。decay一般设为接近于1的数（0.99,0.999）。decay越大模型越稳定，因为decay越大，参数更新的速度就越慢，趋于稳定。
+
+tf.train.ExponentialMovingAverage(decay, steps)
+
+# yolov2
+self.average_op = tf.train.ExponentialMovingAverage(0.999).apply(tf.trainable_variables())
+```
+
+
+
+## tf.ConfigProto
+
+- [参考](https://zhuanlan.zhihu.com/p/78998468)
+
+```python
+sess_config = tf.ConfigProto(device_count = {'GPU': 0})
+
+sess_config = tf.ConfigProto(device_count={'GPU':0, 'CPU':4})
+
+with tf.Session(config=sess_config) as sess: # 基本格式
+    gan = Model(sess, FLAGS) # 此行仅用于示例
+    
+# yolov2
+os.environ['CUDA_VISIBLE_DEVICES'] = cfg.GPU
+config = tf.ConfigProto(gpu_options=tf.GPUOptions())
+self.sess = tf.Session(config=config)
+```
 
 
 
