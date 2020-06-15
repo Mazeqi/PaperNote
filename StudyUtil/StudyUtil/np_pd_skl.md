@@ -236,3 +236,53 @@ array([[1, 2, 0, 1],
 
 ```
 
+
+
+## c = [True, False]  a[c]
+
+```python
+c = np.array([
+    [True,False],
+    [True,False]
+])
+
+a = np.array([
+    [1,2],
+    [3,4]
+])
+
+print(a[c])
+>>> [1,4] # 只输出True的值
+```
+
+
+
+## np.argsort
+
+- [参考](https://www.jianshu.com/p/64c607d49528)
+
+```python
+argsort(a, axis=-1, kind='quicksort', order=None)
+
+    >>> x = np.array([3, 1, 2])
+    >>> y = np.argsort(x)
+    # 在x中，1最小，所以他要被放入到第一位，所以y[0]的值是1的索引1,
+    # 在x中，3最大，所以他要被放入到最后, 所以y[2]的值是3的索引0
+        array([1, 2, 0])
+    
+Two-dimensional array:
+    
+    >>> x = np.array([[0, 3], [2, 2]])
+    >>> x
+    array([[0, 3],
+           [2, 2]])
+
+    >>> np.argsort(x, axis=0)
+    array([[0, 1],
+           [1, 0]])
+
+    >>> np.argsort(x, axis=1)
+    array([[0, 1],
+           [0, 1]])
+```
+
