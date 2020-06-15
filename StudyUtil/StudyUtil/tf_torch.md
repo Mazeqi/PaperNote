@@ -12,6 +12,77 @@ images = tf.placeholder(tf.float32, [None, self.image_size, self.image_size, 3],
 
 
 
+## tf.session
+
+- [参考1](https://blog.csdn.net/u012436149/article/details/52908692)
+- [参考2](https://zhuanlan.zhihu.com/p/32869210)
+
+```python
+# 我们在编写代码的时候，总是要先定义好整个图，然后才调用sess.run()。那么调用sess.run()的时候，程序是否执行了整个图
+
+# 三参数
+
+# target 用来控制 session 使用的硬件设备， 如果使用空值，那么这个 session 就只会使用本地的设备，如果使用 grpc:// URL，那么就会使用这台服务器控制的所有设备。
+
+#graph 用来控制该 session 运行哪个计算图，如果为空，那么该 session 就只会使用当前的默认 Graph，如果使用多个计算图，就可以在这里指定。
+
+#config 用来 指定一个 tf.ConfigProto 格式的 session 运行配置，比如说它里面包含的 allow_soft_placement 如果指定为 TRUE，那么 session 就会自动把不适合在 GPU 上运行的 OP 全部放到 CPU 上运行；cluster_def 是分布式运行时候需要指定的配置；gpu_options.allow_growth 设置会使得程序在开始时候逐步的增长 GPU 显存使用量，而不是一开始就最大化的使用所有显存。第一个和第三个配置是经常用到的。
+
+
+# demo1
+import tensorflow as tf
+state = tf.Variable(0.0,dtype=tf.float32)
+one = tf.constant(1.0,dtype=tf.float32)
+new_val = tf.add(state, one)
+update = tf.assign(state, new_val) #返回tensor， 值为new_val
+update2 = tf.assign(state, 10000)  #没有fetch，便没有执行
+init = tf.initialize_all_variables()
+with tf.Session() as sess:
+    sess.run(init)
+    for _ in range(3):
+        print sess.run(update)
+
+
+#demo2 带feed_dict
+# feed_dict的作用是给使用placeholder创建出来的tensor赋值。其实，他的作用更加广泛：feed 使用一个 值临时替换一个 op 的输出结果. 你可以提供 feed 数据作为 run() 调用的参数. feed 只在调用它的方法内有效, 方法结束, feed 就会消失.
+
+import tensorflow as tf
+y = tf.Variable(1)
+b = tf.identity(y)
+with tf.Session() as sess:
+    tf.global_variables_initializer().run()
+    print(sess.run(b,feed_dict={y:3})) #使用3 替换掉
+    #tf.Variable(1)的输出结果，所以打印出来3 
+    #feed_dict{y.name:3} 和上面写法等价
+    print(sess.run(b))  #由于feed只在调用他的方法范围内有效，所以这个打印的结果是 1
+
+#yolov2
+output = self.sess.run(self.yolo.logits, feed_dict = {self.yolo.images: image})
+```
+
+
+
+## tf.ConfigProto
+
+- [参考](https://zhuanlan.zhihu.com/p/78998468)
+
+```python
+sess_config = tf.ConfigProto(device_count = {'GPU': 0})
+
+sess_config = tf.ConfigProto(device_count={'GPU':0, 'CPU':4})
+
+with tf.Session(config=sess_config) as sess: # 基本格式
+    gan = Model(sess, FLAGS) # 此行仅用于示例
+    
+# yolov2
+os.environ['CUDA_VISIBLE_DEVICES'] = cfg.GPU
+config = tf.ConfigProto(gpu_options=tf.GPUOptions())
+self.sess = tf.Session(config=config)
+```
+
+
+
+
 ## tf.constant
 
 ```python
@@ -157,11 +228,14 @@ with tf.name_scope("increment"):
 
 
 
-## random number
+## random number（init variable）
 
 - [参考](https://blog.csdn.net/yjk13703623757/article/details/77075711)
 
 ```python
+# yolov2
+weight = tf.Variable(tf.truncated_normal(shape, stddev=0.1), name='weight')
+
 
 tf.random_normal(shape, mean=0.0, stddev=1.0, dtype=tf.float32, seed=None, name=None)
 
@@ -406,24 +480,130 @@ self.average_op = tf.train.ExponentialMovingAverage(0.999).apply(tf.trainable_va
 
 
 
-## tf.ConfigProto
+## tf.train.Saver
 
-- [参考](https://zhuanlan.zhihu.com/p/78998468)
+- [参考](https://blog.csdn.net/Jerr__y/article/details/78594494)
 
 ```python
-sess_config = tf.ConfigProto(device_count = {'GPU': 0})
 
-sess_config = tf.ConfigProto(device_count={'GPU':0, 'CPU':4})
+# 保存模型
+# ------------------------------------------------------------------------------
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
 
-with tf.Session(config=sess_config) as sess: # 基本格式
-    gan = Model(sess, FLAGS) # 此行仅用于示例
-    
-# yolov2
-os.environ['CUDA_VISIBLE_DEVICES'] = cfg.GPU
-config = tf.ConfigProto(gpu_options=tf.GPUOptions())
-self.sess = tf.Session(config=config)
+# Create some variables.
+v1 = tf.Variable([1.0, 2.3], name="v1")
+v2 = tf.Variable(55.5, name="v2")
+
+# Add an op to initialize the variables.
+init_op = tf.global_variables_initializer()
+
+# Add ops to save and restore all the variables.
+saver = tf.train.Saver()
+
+ckpt_path = './ckpt/test-model.ckpt'
+# Later, launch the model, initialize the variables, do some work, save the
+# variables to disk.
+sess.run(init_op)
+save_path = saver.save(sess, ckpt_path, global_step=1)
+print("Model saved in file: %s" % save_path)
+
+
+# 恢复模型
+# ------------------------------------------------------------------------------
+
+# 导入模型之前，必须重新再定义一遍变量。
+# 但是并不需要全部变量都重新进行定义，只定义我们需要的变量就行了。
+import tensorflow as tf
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+
+# Create some variables.
+v1 = tf.Variable([11.0, 16.3], name="v1")
+v2 = tf.Variable(33.5, name="v2")
+
+# Add ops to save and restore all the variables.
+saver = tf.train.Saver()
+
+# Later, launch the model, use the saver to restore variables from disk, and
+# do some work with the model.
+# Restore variables from disk.
+ckpt_path = './ckpt/test-model.ckpt'
+saver.restore(sess, ckpt_path + '-'+ str(1))
+print("Model restored.")
+
+print sess.run(v1)
+print sess.run(v2)
 ```
 
+## tensorboard (tf.summary)
+
+- [参考](https://blog.csdn.net/hongxue8888/article/details/79753679)
+
+```python
+#1
+#------------------------------------------------------------------------------
+# 用来显示标量信息
+# 一般在画loss,accuary时会用到这个函数。
+tf.summary.scalar(tags, values, collections=None, name=None)
+tf.summary.scalar('mean', mean)
+
+#yolov2
+tf.summary.scalar('total_loss', self.total_loss)
+
+
+#2
+#------------------------------------------------------------------------------
+# 用来显示直方图信息
+#一般用来显示训练过程中变量的分布情况
+tf.summary.histogram(tags, values, collections=None, name=None)
+tf.summary.histogram('histogram', var)
+
+
+#3
+#-----------------------------------------------------------------------------
+# merge_all 可以将所有summary全部保存到磁盘，以便tensorboard显示。如果没有特殊要求，一般用这一句就可一显示训练时的各种信息了。
+tf.summaries.merge_all(key='summaries')
+
+
+
+#4
+#----------------------------------------------------------------------------
+# 指定一个文件用来保存图。
+tf.summary.FileWritter(path,sess.graph)
+
+
+#demo
+#------------------------------------------------------------------------------
+#生成准确率标量图  
+tf.summary.scalar('accuracy',acc)   
+merge_summary = tf.summary.merge_all() 
+
+#定义一个写入summary的目标文件，dir为写入文件地址  
+train_writer = tf.summary.FileWriter(dir,sess.graph)
+
+# ......(交叉熵、优化器等定义)  
+#训练循环  
+for step in xrange(training_step):               
+    #调用sess.run运行图，生成一步的训练过程数据  
+    train_summary = sess.run(merge_summary,feed_dict =  {...})
+    train_writer.add_summary(train_summary,step)#调用train_writer的add_summary方法将训练过程以及训练步数保存  
+
+    
+#yolov2
+#-----------------------------------------------------------------------------
+self.summary_op = tf.summary.merge_all()
+
+self.writer = tf.summary.FileWriter(self.output_dir)
+
+self.writer.add_graph(self.sess.graph)
+
+summary_, loss, _ = self.sess.run([self.summary_op,self.yolo.total_loss,self.train_op], feed_dict = feed_dict)
+
+self.writer.add_summary(summary_, step)
+```
 
 
 # torch
