@@ -82,6 +82,17 @@ self.sess = tf.Session(config=config)
 
 
 
+## tf.test.gpu_device_name
+
+```python
+# 返回true或者false
+a = tf.test.is_gpu_available()
+```
+
+
+
+
+
 
 ## tf.constant
 
@@ -634,14 +645,4 @@ self.writer.add_summary(summary_, step)
 ```
 
 
-# torch
-
-## torch.clamp
-
-```python
-#将输入input张量每个元素的夹紧到区间 [min,max][min,max]，并返回结果到一个新张量。
-# (n1, n2, 2)
-intersection_dims = torch.clamp(upper_bounds - lower_bounds, min=0) 
-torch.clamp(input, min, max, out=None) → Tensor
-```
 
