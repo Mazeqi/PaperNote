@@ -19,6 +19,22 @@ seq[start:end:step]
 
 
 
+## np.dtype np.size...
+
+```python
+import numpy as np  
+  
+a1 = np.array([1,2,3,4],dtype=np.complex128)  
+print(a1)  
+print("数据类型",type(a1))           #打印数组数据类型  
+print("数组元素数据类型：",a1.dtype) #打印数组元素数据类型  
+print("数组元素总数：",a1.size)      #打印数组尺寸，即数组元素总数  
+print("数组形状：",a1.shape)         #打印数组形状  
+print("数组的维度数目",a1.ndim)      #打印数组的维度数目  
+```
+
+
+
 ## np.tile
 
 - [参考](https://www.jianshu.com/p/4b74a367833c)
@@ -142,5 +158,78 @@ filter_probs = np.array(probs >= self.threshold, dtype = 'bool')
 filter_index = np.nonzero(filter_probs)
 # 筛选box
 box_filter = boxes[filter_index[0], filter_index[1], filter_index[2]]
+```
+
+
+
+## numpy.axis
+
+- [参考1](https://blog.csdn.net/weixin_38145317/article/details/79650188)
+- [参考2](https://blog.csdn.net/sky_kkk/article/details/79725646)
+
+```python
+# 首先对numpy中axis取值进行说明：一维数组时axis=0，二维数组时axis=0，1，维数越高，则axis可取的值越大，数组n维时，axis=0，1，…，n。为了方便下面的理解，我们这样看待：在numpy中数组都有着[]标记，则axis=0对应着最外层的[]，axis=1对应第二外层的[]，以此类推，axis=n对应第n外层的[]。
+
+#demo 1
+# 有两层[]，最外层[]里的最大单位块分别为[1,2]，[3,4]，对这两个单位块做块与块之间的运算，[1,2]+[3,4] = [4, 6]；
+# 做完加法后本应是[[4, 6]]，但是移除最外层[]后，原来的两层[]变成一层[],所以返回结果为 [4, 6]。
+a= np.array([[1,2],[3,4]])  
+a.sum(axis = 0)
+>>>array([4, 6])
+
+#demo2
+a = np.array([#这个方括号不算
+    	
+     #第二这个方括号是shape[0]共有三个
+              [
+                #这里三行是shape[1]  
+                  [1, 5, 5, 2],
+                  
+                #每个方括号的横向是shape[2]
+                  [9, -6, 2, 8],
+                  [-3, 7, -9, 1]
+              ],
+ 
+              [
+                  [-1, 7, -5, 2],
+                  [9, 6, 2, 8],
+                  [3, 7, 9, 1]
+              ],
+            
+             [
+                  [21, 6, -5, 2],
+                  [9, 36, 2, 8],
+                  [3, 7, 79, 1]
+              ]
+])
+
+>>> a.shape
+(3,3,4)
+
+'''
+ 在axis = 0的方向上进行比较，如
+ [1, 5, 5, 2],
+ [-1, 7, -5, 2],
+ [21, 6, -5, 2]
+ 拿出每一个数组的第一行出来比较，并在行的位置上进行比较，最大的分别是21， 7， 5， 2
+ 所以为[2,1,0,0]
+'''
+>>> np.argmax(a, axis=0)
+array([[2, 1, 0, 0],
+       [0, 2, 0, 0],
+       [1, 0, 2, 0]], dtype=int64)
+
+'''
+在axis = 1的方向上进行比较，如比较第一个
+  [ 1  5  5  2]
+  [ 9 -6  2  8]
+  [-3  7 -9  1]
+  从axis=1的方向出发，第一个1,9,-3中，9最大，所以是1，依此类推则为[1,2,0,1]
+'''
+>>> np.argmax(a, axis=1)
+array([[1, 2, 0, 1],
+       [1, 0, 2, 1],
+       [0, 1, 2, 1]], dtype=int64)
+
 ```
 

@@ -12,7 +12,7 @@ images = tf.placeholder(tf.float32, [None, self.image_size, self.image_size, 3],
 
 
 
-## tf.session
+## tf.Session
 
 - [参考1](https://blog.csdn.net/u012436149/article/details/52908692)
 - [参考2](https://zhuanlan.zhihu.com/p/32869210)
@@ -88,6 +88,10 @@ self.sess = tf.Session(config=config)
 ```python
 # 生成常量
 a = tf.constant([[1, 2, 3], [4, 5, 6]])
+
+# 在sess中才能输出
+with tf.Session() as sess:
+    print(c.eval())
 ```
 
 
@@ -128,6 +132,30 @@ sess.run(x)
 
 
 
+# demo
+a = tf.Variable([
+     [
+                  [1, 5, 5, 2],
+                  [9, -6, 2, 8],
+                  [-3, 7, -9, 1]
+              ],
+ 
+              [
+                  [-1, 7, -5, 2],
+                  [9, 6, 2, 8],
+                  [3, 7, 9, 1]
+              ],
+            
+             [
+                  [21, 6, -5, 2],
+                  [9, 36, 2, 8],
+                  [3, 7, 79, 1]
+              ]
+])
+# 变量必须初始化才能输出
+with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        print(a.eval())
 ```
 
 
