@@ -63,5 +63,65 @@ Gem Pooling: f_c = (\frac{1}{|X_c|} \sum_{x \in X_c} x^{\alpha})^{\frac{1}{\alph
 Attention Pooling: f_c = \frac{1}{|X_c * W_c|} \sum_{x \in X_c, w\in W_c} w * x
 $$
 
+
+
 ## Head
 
+- Head是处理聚合模块生成的全局向量的部分，包含：
+
+  - batch normalization head ：a bn layer and a decision layer
+  - Linear head：a decision layer
+  - Reduction head：conv+bn+relu+dropout operation、a reduction layer and a decision layer
+
+  ![](./img/Three_Head.jpg)
+
+- **Batch Normalization** 
+
+  - 用于解决内部协变量偏移，这是由于训练一个带有饱和非线性的模型是非常困难的。
+
+  - Given a batch of feature vector  $f \in R^{m \times C}$ (**m** is the sample number in a batch), then the bn feature  $f_{bn} \in R^{m \times C}$ can be computed as :
+    $$
+    \begin{cases}
+    
+    \ \  \mu  = \frac{1}{m} \sum_{i=1}^{m}f_i, 
+    \\ \\ \\
+    			
+    \    \sigma^{2}  = \frac{1}{m} \sum_{i=1}^{m}(f_i - \mu)^2,&(5) 
+    \\ \\ \\
+    	 				
+      f_{bn} = \gamma \cdot \frac{f - \mu}{\sqrt{\sigma^2 + \varepsilon}} + \beta
+    \end{cases}
+    $$
+
+  - $ \gamma$ 和 $\beta$ 是训练范围和偏移参数，而 $\varepsilon$ 是一个常量，使得被除数不为0
+
+- **Reduction layer** 
+  - 使得高纬度的特征变成低纬度特征， 2048-dim -> 512-dim
+- **Decision layer** 
+  - 输出不同类别的概率来区分不同类别，用于接下来的模型训练。
+
+
+
+# Training
+
+
+
+## Loss Function
+
+- 四个不同的loss function 在FastReID中被使用
+
+- **Cross-entropy loss** 
+  $$
+  \mathcal L_{ce} = \sum^{C}_{i=1} y_i \log \hat{y} + (1 - y_i) log(1-\hat{y_i}) \ \ （6） 
+  $$
+  
+
+  - 其中$\hat{y_i} = \frac{e^{W^T_if}}{\sum^C_{i=1}e^{W^T_if}} $ 
+
+- **Arcface loss** 
+  - 将笛卡尔坐标映射到球面坐标
+  - 转化logit的方式：$W^{T}_if = ||W_i|| \  ||f|| \cos \theta_i $ ，$\theta_i$ 是weight $W_i$ 和 feature $f$ 之间的角度。
+  - 通过 $l_2$ normalisation固定了 individual weight $||W_i|| = 1$ ， 和通过12 normalisation固定 embedding feature $f$ 并且把它重新调整到 s，所以 $\hat{y_i} = \frac{e^{s\cos \theta_i}}{\sum^{C}_{i=1}e^{s \cos \theta_i}}$ 。
+  - 为了同时增强类内紧致性和类间差异，Arcface在类内度量中添加了角边缘惩罚m。所以$\hat{y_i} = \frac{e^{s\cos (\theta_i+m)}} {e^{s\cos^{\theta_i+m}}\sum^{C-1}_{i=1 i \neq c }e^{s \cos \theta_i}}$ 
+- **Circle loss** 
+- **Triplet loss** ：
