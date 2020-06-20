@@ -221,6 +221,144 @@ int connect(int sockfd, const struct sockaddr *myaddr, socklen_t addrlen);
 
    - 表达格式：也就是我们能看得懂的格式，例如`"192.168.19.12"`这样的字符串
    - 数值格式：可以存入套接字地址结构体的格式，数据类型为整型
+   
+    ```C++
+     int inet_pton(int family, const char *strptr, void *addrptr);
+     const char *inet_ntop(int family, const void *addrptr, char *strptr, size_t len);
+    ```
+   
+   - `inet_ntop()`函数用于将IP地址从数值格式转换为表达格式
+     -  第一个参数指定协议族
+   
+     -  第二个参数指定要转换的数值格式的IP地址
+   
+     -  第三个参数指定用于存储转换结果的指针
+   
+     -  第四个参数指定第三个参数指向的空间的大小，用于防止缓存区溢出,第四个参数可以使用预设的变量：
+   
+       ```C++
+       #define INET_ADDRSTRLEN    16  // IPv4地址的表达格式的长度
+       #define INET6_ADDRSTRLEN 46    // IPv6地址的表达格式的长度
+       ```
+   
+     - returns
+   
+       - 若转换成功则返回指向返回结果的指针
+       - 若出错则返回NULL
+   
+- **connect returns**
+
+   - 若成功则返回0，否则返回-1并置相应的`errno`。
+   - 其中connect函数会出错的几种情况：
+
+   - 若客户端在发送SYN包之后长时间没有收到响应，则返回`ETIMEOUT`错误
+
+   - - 一般而言，如果长时间没有收到响应，客户端会重发SYN包，若超过一定次数重发仍没响应的话则会返回该错误
+
+     - 可能的原因是目标服务端的IP地址不存在
+
+       
+
+   - 若客户端在发送SYN包之后收到的是RST包的话，则会立刻返回`ECONNREFUSED`错误
+
+   - - 当客户端的SYN包到达目标机之后，但目标机的对应端口并没有正在`LISTEN`的套接字，那么目标机会发一个RST包给客户端
+
+     - 可能的原因是目标服务端没有运行，或者没运行在客户端知道的端口上
+
+       
+
+   - 若客户端在发送SYN包的时候在中间的某一台路由器上发生ICMP错误，则会发生`EHOSTUNREACH`或`ENETUNREACH`错误
+
+   - - 事实上跟处理未响应一样，为了排除偶然因素，客户端遇到这个问题的时候会保存内核信息，隔一段时间之后再重发SYN包，在多次发送失败之后才会报错
+     - 路由器发生ICMP错误的原因是，路由器上根据目标IP查找转发表但查不到针对目标IP应该如何转发，则会发生ICMP错误
+     - 可能的原因是目标服务端的IP地址不可达，或者路由器配置错误，也有可能是因为电波干扰等随机因素导致数据包错误，进而导致路由无法转发
+
+- 由于connect函数在发送SYN包之后就会将自身的套接字从`CLOSED`状态置为`SYN_SENT`状态，故当connect报错之后需要主动将套接字状态置回`CLOSED`。此时需要通过调用close函数主动关闭套接字实现。
+
+   ```C++
+    if (-1 == connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)))
+    {
+        printf("Connect error(%d): %s\n", errno, strerror(errno));
+        close(sockfd);        // 新增代码，当connect出错时需要关闭套接字
+        return -1;
+    }
+   ```
+
+    
+
+## accpet
+
+- 该函数用于跟客户端建立连接，并返回客户端套接字。
+- accept函数由TCP服务器调用，用于从**Accept队列**中pop出一个已完成的连接。若Accept队列为空，则accept函数所在的进程阻塞。
+
+```C++
+int accept(int sockfd, struct sockaddr *cliaddr, socklen_t *addrlen);
+```
+
+- 其中第一个参数为服务端自身的套接字，第二个参数用于接收客户端的套接字地址结构体，第三个参数用于接收第二个参数的结构体的长度。
+- **returns**
+  - 当accept函数成功拿到一个已完成连接时，其会返回该连接对应的**客户端套接字描述符**，用于后续的数据传输。
+  - 若发生错误则返回-1并置相应的`errno`。
 
 
 
+## recv-send
+
+- recv函数用于通过套接字接收数据，send函数用于通过套接字发送数据
+
+```C++
+
+//linux
+ssize_t recv(int sockfd, void *buff, size_t nbytes, int flags);
+ssize_t send(int sockfd, const void *buff, size_t nbytes, int flags);
+
+//windows
+int PASCAL FAR recv (
+        _In_ SOCKET s,
+        _Out_writes_bytes_to_(len, return) __out_data_source(NETWORK) char FAR * buf,
+        _In_ int len,
+        _In_ int flags
+);
+
+int PASCAL FAR send (
+   		_In_ SOCKET s,
+    	_In_reads_bytes_(len) const char FAR * buf,
+    	_In_ int len,
+    	_In_ int flags
+);
+```
+
+- Args
+
+  - 第一个参数为要读写的套接字
+  -  第二个参数指定要接收数据的空间的指针（recv）或要发送的数据（send）
+  -  第三个参数指定最大读取的字节数（recv）或发送的数据的大小（send）
+  -  第四个参数用于设置一些参数，默认为0
+  -  事实上，去掉第四个参数的情况下，recv跟read函数类似，send跟write函数类似。这两个函数的本质也是一种通过描述符进行的IO，只是在这里的描述符为套接字描述符。
+
+- returns
+
+  - 在recv函数中：
+
+    - 若成功，则返回所读取到的字节数
+    - 否则返回-1，置`errno`
+
+    在send函数中：
+
+    - 若成功，则返回成功写入的字节数
+    - 事实上，当返回值与`nbytes`不等时，也可以认为其出错。
+    - 否则返回-1，置`errno`
+
+
+
+## close
+
+- 该函数用于断开连接。或者更具体的讲，该函数用于关闭套接字，并终止TCP连接。
+
+```C++
+int close(int sockfd);
+```
+
+- returns
+  - 同样的，若close成功则返回0，否则返回-1并置`errno`。
+  - 常见的错误为**关闭一个无效的套接字**。
