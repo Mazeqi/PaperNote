@@ -4,6 +4,130 @@
 
 - [参考](https://zhuanlan.zhihu.com/p/119085959)
 
+
+
+## WSAStartup
+
+- [参考](https://blog.csdn.net/richerg85/article/details/7395550?utm_medium=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase)
+
+```C++
+  int WSAStartup(
+         __in      WORD wVersionRequested,
+         __out      LPWSADATA lpWSAData
+       ）;
+```
+
+- 使用Socket之前必须调用WSAStartup函数，此函数在应用程序中用来初始化Windows Sockets DLL，只有此函数调用成功后，应用程序才可以调用Windows SocketsDLL中的其他API函数，否则后面的任何函数都将调用失败。
+
+- 在WSAStartup函数的入口，Windows Sockets DLL检查了应用程序所需的版本.如果版本高于DLL支持的最低版本,则调用成功并且DLL在wHighVersion中返回它所支持的最高版本，在wVersion中返回它的高版本和wVersionRequested中的较小者，然后Windows Sockets DLL就会假设应用程序将使用wVersion。如果WSDATA结构中的wVersion域对调用方来说不可接收， 它就应调用WSACleanup函数并且要么去另一个Windows Sockets DLL中搜索，要么初始化失败。
+
+- demo
+
+  ```C++
+  
+  #defineWIN32_LEAN_AND_MEAN
+   
+  #include<windows.h>
+  #include<winsock2.h>
+  #include<ws2tcpip.h>
+  #include<stdio.h>
+   
+  //链接  Ws2_32.lib
+  #pragmacomment(lib, "ws2_32.lib")
+   
+   
+  int __cdeclmain()
+  {
+   
+      WORD wVersionRequested;
+      WSADATA wsaData;
+      int err;
+   
+  /* 使用Windef.h中的 MAKEWORD(lowbyte, highbyte) 宏定义 */
+      wVersionRequested = MAKEWORD(2, 2);
+   
+      err = WSAStartup(wVersionRequested,&wsaData);
+      if (err != 0) {
+          /* 找不到Winsock DL L.*/
+          printf("WSAStartup failed witherror: %d\n", err);
+          return 1;
+      }
+   
+  /*确保 WinSock DLL 支持 2.2.*/
+  /* Note that ifthe DLL supports versions greater    */
+  /* than 2.2 inaddition to 2.2, it will still return */
+  /* 2.2 inwVersion since that is the version we     */
+  /*requested.                                        */
+   
+      if (LOBYTE(wsaData.wVersion) != 2 ||HIBYTE(wsaData.wVersion) != 2) {
+          /* Tell the user that we could not finda usable */
+          /* WinSock DLL.                                  */
+          printf("Could not find a usableversion of Winsock.dll\n");
+          WSACleanup();
+          return 1;
+      }
+      else
+          printf("The Winsock 2.2 dll wasfound okay\n");
+         
+   
+  /* The WinsockDLL is acceptable. Proceed to use it. */
+   
+  /* Add networkprogramming using Winsock here */
+   
+  /* then callWSACleanup when done using the Winsock dll */
+     
+      WSACleanup();
+   
+  }
+  ```
+
+  
+
+## server
+
+- 在socket编程中，服务端和客户端是靠**socket**进行连接的。服务端在建立连接之前需要做的有：
+  - 创建socket（伪代码中简称为`socket()`）
+  - 将socket与指定的IP和端口（以下简称为port）绑定（伪代码中简称为`bind()`）
+  - 让socket在绑定的端口处监听请求（等待客户端连接到服务端绑定的端口）（伪代码中简称为`listen()`）
+- ​	而客户端发送连接请求并成功连接之后（这个步骤在伪代码中简称为`accept()`），服务端便会得到**客户端的套接字**，于是所有的收发数据便可以在这个客户端的套接字上进行了。
+  - 接收数据：使用客户端套接字拿到客户端发来的数据，并将其存于buff中。（伪代码中简称为`recv()`）
+  - 发送数据：使用客户端套接字，将buff中的数据发回去。（伪代码中简称为`send()`）
+
+- 在收发数据之后，就需要断开与客户端之间的连接。在socket编程中，只需要关闭客户端的套接字即可断开连接。（伪代码中简称为`close()`）
+
+```C++
+sockfd = socket();    // 创建一个socket，赋给sockfd
+bind(sockfd, ip::port和一些配置);    // 让socket绑定端口，同时配置连接类型之类的
+listen(sockfd);        // 让socket监听之前绑定的端口
+while(true)
+{
+    connfd = accept(sockfd);    // 等待客户端连接，直到连接成功，之后将客户端的套接字返回出来
+    recv(connfd, buff); // 接收到从客户端发来的数据，并放入buff中
+    send(connfd, buff); // 将buff的数据发回客户端
+    close(connfd);      // 与客户端断开连接
+}
+```
+
+
+
+## client
+
+- 创建socket
+- 使用socket和已知的服务端的ip和port连接服务端
+- 收发数据
+- 关闭连接
+
+```C++
+sockfd = socket();    // 创建一个socket，赋给sockfd
+connect(sockfd, ip::port和一些配置);    // 使用socket向指定的ip和port发起连接
+scanf("%s", buff);    // 读取用户输入
+send(sockfd, buff);    // 发送数据到服务端
+recv(sockfd, buff);    // 从服务端接收数据
+close(sockfd);        // 与服务器断开连接
+```
+
+
+
 ## socket函数
 
 - socket函数用于创建套接字，更严谨的讲是创建一个**套接字描述符**
@@ -351,14 +475,198 @@ int PASCAL FAR send (
 
 
 
-## close
+## closesocket
 
 - 该函数用于断开连接。或者更具体的讲，该函数用于关闭套接字，并终止TCP连接。
 
 ```C++
-int close(int sockfd);
+int closesocket(int sockfd);
 ```
 
 - returns
   - 同样的，若close成功则返回0，否则返回-1并置`errno`。
   - 常见的错误为**关闭一个无效的套接字**。
+
+
+
+## server demo
+
+```C++
+#define _CRT_SECURE_NO_WARNINGS
+#include<winsock2.h>
+#include<cstdio>
+#include<iostream>
+#include<cstring>
+#include<cstdlib>
+#include<signal.h>
+#pragma comment(lib, "ws2_32.lib") 
+
+#define DEFAULT_PORT 16555    // 指定端口为16555
+#define MAXLINK 2048
+#define BUFFSIZE 2048
+
+using namespace std;
+
+int sockfd;
+int connfd;
+
+void stopServerRunning(int p)
+{
+	closesocket(sockfd);
+	WSACleanup();
+	printf("Close Server\n");
+	exit(0);
+}
+
+int main() {
+
+	//初始化WSA  
+	WORD sockVersion = MAKEWORD(2, 2);
+	WSADATA wsaData;
+	if (WSAStartup(sockVersion, &wsaData) != 0)
+	{
+		return 0;
+	}
+
+
+	//用于存放ip和端口的结构
+	struct sockaddr_in servaddr;
+
+	//用于收发数据
+	char buff[BUFFSIZE];
+
+	sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	//printf("%d", sockfd);
+	//判断是否出错
+	if (-1 == sockfd) {
+		printf("Create socket error(%d): %s\n", errno, strerror(errno));
+		return -1;
+	}
+
+
+	//将数据仓清零
+	memset(&servaddr, 0, sizeof(servaddr));
+
+	//设置ip版本
+	servaddr.sin_family = AF_INET;
+
+	//指定ip地址位通配版本
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	//设置端口
+	servaddr.sin_port = htons(DEFAULT_PORT);
+
+	//第二个参数进行了参数类型转化，转化为ipv4
+	if (-1 == bind(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr))) {
+		printf("Bind error(%d): %s\n", errno, strerror(errno));
+		return -1;
+	}
+
+	if (-1 == listen(sockfd, MAXLINK))
+	{
+		printf("Listen error(%d): %s\n", errno, strerror(errno));
+		return -1;
+	}
+
+	printf("Listening...\n");
+
+	while (true) {
+		// 这句用于在输入Ctrl+C的时候关闭服务器
+		signal(SIGINT,stopServerRunning);
+
+		connfd = accept(sockfd, NULL, NULL);
+
+		if (-1 == connfd)
+		{
+			printf("Accept error(%d): %s\n", errno, strerror(errno));
+			return -1;
+		}
+
+		memset(buff, 0, BUFFSIZE);
+
+		recv(connfd,buff,BUFFSIZE - 1, 0);
+		
+		printf("Recv: %s\n", buff);
+		
+		send(connfd, buff, strlen(buff), 0);
+	
+		closesocket(connfd);
+
+	}
+	
+	//system("pause");
+	return 0;
+}
+```
+
+
+
+## client demo
+
+```C++
+#define _CRT_SECURE_NO_WARNINGS
+#include<cstdio>
+#include<WinSock2.h>
+#include <Ws2tcpip.h>
+
+#pragma comment(lib,"Ws2_32.lib")
+
+#define BUFFSIZE 2048
+#define SERVER_IP "127.0.0.1"
+#define SERVER_PORT 16555
+int main() {
+
+	//初始化WSA  
+	WORD sockVersion = MAKEWORD(2, 2);
+	WSADATA wsaData;
+	if (WSAStartup(sockVersion, &wsaData) != 0)
+	{
+		return 0;
+	}
+
+	struct sockaddr_in servaddr;
+
+	char buff[BUFFSIZE];
+
+	int sockfd;
+
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if (-1 == sockfd) {
+
+		printf("Create socket error(%d): %S\n", errno, strerror(errno));
+		return -1;
+
+	}
+
+	memset(&servaddr, 0, sizeof(servaddr));
+
+	servaddr.sin_family = AF_INET;
+	
+	inet_pton(AF_INET, SERVER_IP, &servaddr.sin_addr);
+
+	servaddr.sin_port = htons(SERVER_PORT);
+
+	if (-1 == connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr))) {
+		printf("Connect error(%d):%s\n", errno,strerror(errno));
+		return -1;
+	}
+
+	printf("please input ： ");
+	scanf("%s", buff);
+
+	send(sockfd, buff, strlen(buff), 0);
+
+	memset(buff, 0, sizeof(buff));
+
+	recv(sockfd, buff, BUFFSIZE - 1, 0);
+
+	printf("Recv: %s\n",buff);
+	
+	closesocket(sockfd);
+	WSACleanup();
+
+	return 0;
+}
+```
+
