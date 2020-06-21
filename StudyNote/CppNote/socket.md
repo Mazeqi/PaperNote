@@ -489,6 +489,69 @@ int closesocket(int sockfd);
 
 
 
+## gethostbyname-gethostbyaddr
+
+- [参考1](https://blog.csdn.net/tg5156/article/details/6587871)  [参考2](https://blog.csdn.net/qq_36573828/article/details/81356638)
+
+- gethostbyname函数是通过主机名称获取主机的完整信息。name参数是目标主机的主机 名称。
+- gethostbyname函数是通过主机名称获取主机的完整信息。name参数是目标主机的主机 名称。
+- 两个函数的返回都是hostent结构体类型指针。hostent结构体定义如下：
+
+```C++
+struct hostent{
+    //主机名
+    char *h_name;
+    
+    //主机别名列表，可能有多个
+    char **h_aliases;
+    
+    //地址类型
+    int h_addrtype;
+    
+    //地址长度
+    int h_length;
+    
+    //按照网络字节列出的主机ip地址族
+    char **h_addr_list;
+}
+
+//因为hostent结构支持多种地址类型，所以其定义的h_addr_list是char **型。gethostbyname以后，实际存储情况是这样：
+hostent->h_addr_list[0][0] = 127
+hostent->h_addr_list[0][1] = 0
+hostent->h_addr_list[0][2] = 0
+hostent->h_addr_list[0][3] = 1
+
+//demo1
+struct hostent* host;
+host = gethostbyaddr((char *)&servaddr.sin_addr,sizeof(servaddr.sin_addr)- 1,AF_INET);
+char* ip;
+ip = inet_ntoa(*(struct in_addr*)*host->h_addr_list);
+cout << ip << endl;
+
+//demo2
+
+ret = gethostname(hostname,sizeof(hostname));
+printf("the hostname:%s\n",hostname);
+hostname[strlen(hostname)+1] = '\0';
+/*利用主机名称获取完整的主机信息*/
+host = gethostbyname(hostname);
+printf("the hostname after getosbyname: %s \n",host->h_name);
+
+```
+
+
+
+## inet_pton
+
+- ip地址转化函数
+
+  ```C++
+  //SERVER_IP = "127.0.0.1"
+  inet_pton(AF_INET, SERVER_IP, &servaddr.sin_addr);
+  ```
+
+  
+
 ## server demo
 
 ```C++
@@ -605,15 +668,18 @@ int main() {
 
 ```C++
 #define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include<cstdio>
 #include<WinSock2.h>
 #include <Ws2tcpip.h>
-
+#include<iostream>
 #pragma comment(lib,"Ws2_32.lib")
 
 #define BUFFSIZE 2048
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 16555
+
+using namespace std;
 int main() {
 
 	//初始化WSA  
@@ -643,6 +709,7 @@ int main() {
 
 	servaddr.sin_family = AF_INET;
 	
+	//ip地址转化函数
 	inet_pton(AF_INET, SERVER_IP, &servaddr.sin_addr);
 
 	servaddr.sin_port = htons(SERVER_PORT);
@@ -652,7 +719,19 @@ int main() {
 		return -1;
 	}
 
+	struct hostent* host;
+
+	host = gethostbyaddr((char *)&servaddr.sin_addr,sizeof(servaddr.sin_addr)- 1,AF_INET);
+
+	char* ip;
+
+	ip = inet_ntoa(*(struct in_addr*)*host->h_addr_list);
+
+	cout << ip << endl;
+	
+
 	printf("please input ： ");
+
 	scanf("%s", buff);
 
 	send(sockfd, buff, strlen(buff), 0);
@@ -664,8 +743,9 @@ int main() {
 	printf("Recv: %s\n",buff);
 	
 	closesocket(sockfd);
-	WSACleanup();
 
+	WSACleanup();
+	
 	return 0;
 }
 ```
