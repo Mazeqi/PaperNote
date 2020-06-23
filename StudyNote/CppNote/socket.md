@@ -750,3 +750,66 @@ int main() {
 }
 ```
 
+
+
+## checkSock
+
+- 检查socket 连接是否还活着
+- [参考1](http://blog.chinaunix.net/uid-20759926-id-1874621.html) [参考2](https://www.jianshu.com/p/b5d7b7c6b9f7)
+- select()机制中提供一fd_set的数据结构，实际上是一long类型的数组，每一个数组元素都能与一打开的文件句柄(不管是socket句柄，还是其他文件或命名管道或设备句柄)建立联系，建立联系的工作由程序员完成，当调用select()时，由内核根据IO状态修改fd_set的内容，由此来通知执行了select()的进程哪一socket或文件可读。
+- select函数用于在非阻塞中，当一个套接字或一组套接字有信号时通知你，系统提供select函数来实现多路复用输入/输出模型
+- 使用select函数的过程一般是： 先调用宏FD_ZERO将指定的fd_set清零，然后调用宏FD_SET将需要测试的fd加入fd_set，接着调用函数select测试fd_set中的所有fd，最后用宏FD_ISSET检查某个fd在函数select调用后，相应位是否仍然为1。
+
+```C++
+//fd_set
+fd_set set；
+FD_ZERO(&set); /*将set清零使集合中不含任何fd*/
+
+FD_SET(fd, &set); /*将fd加入set集合*/
+
+FD_CLR(fd, &set); /*将fd从set集合中清除*/
+
+FD_ISSET(fd, &set); /*测试fd是否在set集合中*/ 
+
+//select函数
+//参数maxfd是需要监视的最大的文件描述符值+1；rdset,wrset,exset分别对应于需要检测的可读文件描述符的集合，可写文件描述符的集 合及异常文件描述符的集合。struct timeval结构用于描述一段时间长度，如果在这个时间内，需要监视的描述符没有事件发生则函数返回，返回值为0。
+
+int select(int maxfd,fd_set *rdset,fd_set *wrset,fd_set *exset,struct timeval *timeout);
+
+
+//sock 是 accept的返回值
+bool Server::checkSock(int sock) {
+	fd_set   fds;
+	char buf[2];
+	int nbread;
+	
+    //将你的套节字集合清空
+	FD_ZERO(&fds);
+    
+    //加入你感兴趣的套节字到集合,这里是一个读数据的套节字s
+	FD_SET(sock, &fds);
+	
+    //检查套节字是否可读,
+	//很多情况下就是是否有数据(注意,只是说很多情况)
+	if (select(sock + 1, &fds, (fd_set*)0, (fd_set*)0, NULL) == -1) {
+		//log(LOG_ERR,"select(): %s\n",strerror(errno)) ;
+		return false;
+	}
+    
+    //检查s是否在这个集合里面,
+    //select将更新这个集合,把其中不可读的套节字去掉
+    //只保留符合条件的套节字在这个集合里面
+	if (!FD_ISSET(sock, &fds)) {
+		//log(LOG_ERR,"select() returns OK but FD_ISSET not\n") ;
+		return false;
+	}
+	/* read one byte from socket */
+	nbread = recv(sock, buf, 1, MSG_PEEK);
+	if (nbread <= 0) {
+		return false;
+	}
+		
+	return true;
+}
+```
+

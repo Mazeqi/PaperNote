@@ -1,8 +1,37 @@
-# C++ string_spilt
+[TOC]
+
+# String
+
+
+
+## int to char
+
+```C++
+_itoa_s 函数原型如下：
+
+ errno_t _itoa_s(
+
+   int value,
+
+   char *buffer,
+
+   size_t sizeInCharacters,  //存放结果的字符数组长度
+
+   int radix
+
+);
+
+_itoa_s(i,buffer,2,10);//10表示10进制2表示字符长度buffer表示存放结果
+std::string file=string(buffer);
+```
+
+
+
+## string_spilt
 
 - [参考](https://www.jianshu.com/p/5876a9f49413)
 
-## find
+### find
 
 ```C++
 size_t find (const string& str, size_t pos = 0) const;
@@ -14,7 +43,7 @@ size_t find (const string& str, size_t pos = 0) const;
 
 
 
-## substr
+### substr
 
 ```C++
 string substr (size_t pos = 0, size_t len = npos) const;
@@ -26,7 +55,7 @@ string substr (size_t pos = 0, size_t len = npos) const;
 
 
 
-## demo1
+### demo1
 
 ```C++
 vector<string> split(const string &str, const string &pattern)
@@ -53,7 +82,7 @@ vector<string> split(const string &str, const string &pattern)
 
 
 
-## strtok
+### strtok
 
 ```C++
 char * strtok ( char * str, const char * delimiters );
@@ -62,7 +91,7 @@ char * strtok ( char * str, const char * delimiters );
 - 功能：分割字符串str，delimiters为指定的分割符，可以有多个。
 - 说明：strtok只能接受C风格的字符串，如果是string类型，可以使用c_str函数进行转换。strtok()用来将字符串分割成一个个片段。参数s指向欲分割的字符串，参数delim则为分割字符串，当strtok()在参数s的字符串中发现到参数delim的分割字符时 则会将该字符改为\0 字符。在第一次调用时，strtok()必需给予参数s字符串，往后的调用则将参数s设置成NULL。每次调用成功则返回被分割出片段的指针。
 
-## demo2
+### demo2
 
 ```c
 vector<string> split2(const string &str, const string &pattern)
@@ -83,11 +112,11 @@ vector<string> split2(const string &str, const string &pattern)
 
 
 
-## stringstream
+### stringstream
 
 - stringstream为字符串输入输出流，继承自iostream，灵活地使用stringstream流可以完成很多字符串处理功能，例如字符串和其他类型的转换，字符串分割等。在这里，我们使用其实现字符串分割功能。注意stingstream的使用需要包含sstream头文件。
 
-## demo3 
+### demo3 
 
 ```c
 vector<string> split3(const string &str, const char pattern)

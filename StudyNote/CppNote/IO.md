@@ -83,7 +83,7 @@ void open(const wchar_t *_Filename,
 - 当文件读写操作完成之后，我们必须将文件关闭以使文件重新变为可访问的。成员函数close()，它负责将缓存中的数据排放出来并关闭文件。这个函数一旦被调用，原先的流对象就可以被用来打开其它的文件了，这个文件也就可以重新被其它的进程所访问了。为防止流对象被销毁时还联系着打开的文件，析构函数将会自动调用关闭函数close。
 
 
-  
+
 
 ## write-read
 
@@ -212,7 +212,7 @@ This is another line
     - 使用这个原型可以指定由参数direction决定的一个具体的指针开始计算的一个位移(offset)
       -  seekg ( off_type offset, seekdir direction );
       -  seekp ( off_type offset, seekdir direction );
-        
+      
 
 | 第二种原型 |                                |
 | ---------- | ------------------------------ |
@@ -225,7 +225,7 @@ This is another line
 - 对二进制文件，你可以任意使用这些函数，应该不会有任何意外的行为产生。
 
 
-  
+
 
 - **demo**
 
@@ -274,3 +274,85 @@ This is another line
     
 
    
+
+
+
+## dir _findfirst _findnext
+
+- [参考1](https://blog.csdn.net/qq_23845067/article/details/51915200) [参考2](https://www.cnblogs.com/ranjiewen/p/5960976.html)
+- **_finddata_t**
+
+```C++
+//io.h
+struct _finddata_t
+{
+    unsigned attrib;
+                //_A_ARCH（存档）
+                //_A_HIDDEN（隐藏）
+                //_A_NORMAL（正常）
+                //_A_RDONLY（只读）
+                //_A_SUBDIR（文件夹）
+                //_A_SYSTEM（系统）
+    time_t time_create;
+                //创建日期
+    time_t time_access;
+                //最后访问日期
+    time_t time_write;
+                //最后修改日期
+    _fsize_t size;
+                //文件大小
+    char name[_MAX_FNAME];
+                //文件名， _MAX_FNAME表示文件名最大长度
+};
+
+```
+
+- **_findfirst** **_findnext**
+
+```C++
+long _findfirst(const char *, struct _finddata_t *);
+//第一个参数为文件名，可以用"*.*"来查找所有文件，也可以用"*.cpp"来查找.cpp文件。第二个参数是_finddata_t结构体指针。若查找成功，返回文件句柄，若失败，返回-1。
+
+int _findnext(long, struct _finddata_t *);
+//第一个参数为文件句柄，第二个参数同样为_finddata_t结构体指针。若查找成功，返回0，失败返回-1。
+
+int _findclose(long);
+//只有一个参数，文件句柄。若关闭成功返回0，失败返回-1。
+```
+
+
+
+- **demo1**
+
+```C++
+#include <iostream>
+#include <string>
+#include <io.h>
+using namespace std;
+void dir(string path)
+{
+    long hFile = 0;
+    struct _finddata_t fileInfo;
+    string pathName, exdName;
+    // \\* 代表要遍历所有的类型,如改成\\*.jpg表示遍历jpg类型文件
+    if ((hFile = _findfirst(pathName.assign(path).append("\\*").c_str(), &fileInfo)) == -1) {
+        return;
+    }
+    do
+    {
+        //判断文件的属性是文件夹还是文件
+       cout << fileInfo.name << (fileInfo.attrib&_A_SUBDIR ? "[folder]" : "[file]") << endl;
+    } while (_findnext(hFile, &fileInfo) == 0);
+    _findclose(hFile);
+    return;
+}
+int main()
+{
+                //要遍历的目录
+    string path = "E:\\intel_tuyoji_pic\\群贤";
+    dir(path);
+    system("pause");
+    return 0;
+}
+```
+
