@@ -96,8 +96,10 @@ $$
   - $ \gamma$ 和 $\beta$ 是训练范围和偏移参数，而 $\varepsilon$ 是一个常量，使得被除数不为0
 
 - **Reduction layer** 
+  
   - 使得高纬度的特征变成低纬度特征， 2048-dim -> 512-dim
 - **Decision layer** 
+  
   - 输出不同类别的概率来区分不同类别，用于接下来的模型训练。
 
 
@@ -123,5 +125,103 @@ $$
   - 转化logit的方式：$W^{T}_if = ||W_i|| \  ||f|| \cos \theta_i $ ，$\theta_i$ 是weight $W_i$ 和 feature $f$ 之间的角度。
   - 通过 $l_2$ normalisation固定了 individual weight $||W_i|| = 1$ ， 和通过12 normalisation固定 embedding feature $f$ 并且把它重新调整到 s，所以 $\hat{y_i} = \frac{e^{s\cos \theta_i}}{\sum^{C}_{i=1}e^{s \cos \theta_i}}$ 。
   - 为了同时增强类内紧致性和类间差异，Arcface在类内度量中添加了角边缘惩罚m。所以$\hat{y_i} = \frac{e^{s\cos (\theta_i+m)}} {e^{s\cos^{\theta_i+m}}\sum^{C-1}_{i=1 i \neq c }e^{s \cos \theta_i}}$ 
-- **Circle loss** 
-- **Triplet loss** ：
+  
+- **Circle loss** : [参考](https://baijiahao.baidu.com/s?id=1662208692745927420&wfr=spider&for=pc)
+
+$$
+L_{circle} = \log [1 + \sum^{K}_{j=1}
+\sum ^{L}_{j=1}
+exp(\gamma(\alpha^{j}_ns^{j}_n-\alpha^{i}_{p} s^{i}_{p}))]
+= 
+\log [1 + \sum^{L}_{j=1} exp(\gamma\alpha^{j}_ns^{j}_n)
+\sum ^{K}_{i=1} exp(-\gamma\alpha^{i}_{p} s^{i}_{p})]
+$$
+
+
+
+- **Triplet loss** ：[参考](https://baijiahao.baidu.com/s?id=1662208692745927420&wfr=spider&for=pc)
+
+$$
+L_{uni} = \log [1 + \sum^{K}_{j=1}
+\sum ^{L}_{j=1}
+exp(\gamma (s_{n}^j - s_{p}^{i} +m) )]
+= 
+\log [1 + \sum^{K}_{j=1} exp(\gamma(s^{j}_{n}+m))
+\sum ^{K}_{i=1}exp(-\gamma (s^{i}_{p}))]
+
+
+\\
+$$
+
+$$
+L_{tri} = \lim_{i\rightarrow \infty} \frac{1}{\gamma} L_{uni}
+ = \lim_{y \rightarrow\infty}
+ \log [1 + \sum^{K}_{j=1}
+\sum ^{L}_{j=1}
+exp(\gamma (s_{n}^j - s_{p}^{i} +m) )]
+= 
+max[s_n^{j} - s^{i}_p]_+
+$$
+
+## Training Strategy
+
+![](./img/train-tricks.jpg)
+
+- **learning rate warm-up**: 在初始2k次迭代逐渐从$3.5 \times 10^{-5}$ 增加到 $3.5 \times 10^{-4}$ ,具体情况看上图
+- **Backbone freeze**： 在训练开始时只训练分类器参数，并且冻结网络参数，不进行更新(2k次迭代)
+
+
+
+# Testinng
+
+
+
+## Distance Metric
+
+- **Deep spatial reconstruction (DSR) W**
+
+  - 假设有一对人物图片x、y. 表示来自骨干的空间特征映射为x，x带有纬度 $W_x \times h_x \times d$ ， y带有纬度 $W_y \times h_y \times d $
+  - N个位置的N个空间特征被聚合到一个矩阵$X = [X_n]^{N}_{n=1} \in R^{d\times N} , N = w_x \times h_x$  ，Y同X一样建立。
+  - 然后$X_n$ 可以在Y中寻找最相似的空间特征来匹配，并且它的匹配分数是$S_n$ ,最终的分数是$S = \sum ^{N}_{n=1} s_n$
+
+  
+
+## Post-processing
+
+
+
+- **Query expansion : ** 给出一个查询的图片。并且使用它来寻找 m 相似的画阔图片。查询特征被定义为 $f_q$ ， m相似画阔特征被定义为$f_g$ 。然后将验证过的库特征与查询特征进行平均，构造新的查询特征。
+  $$
+  f_{qnew} = \frac{f_q + \sum^{m}_{i=1}f^{(i)}_g}{m+1}
+  $$
+  
+
+# Deployment
+
+
+
+![](./img/distillation.jpg)
+
+
+
+- 为了解决AI芯片的部署问题，提出了两个预训练模型，学生模型简单，教师模型更深并且不带有本地函数。
+
+  $L_{logit} = || l_s - l_t||_1$
+
+- 为了确保学生模型和教师模型的一致性，使用如下计算模型, K是余弦相似测量：
+  $$
+  \begin{cases}
+  
+  L_{PKT} = \sum^{N}_{i=1} \sum^{N}_{j=1,i\neq j} p_{j|i} \log(\frac{p_{j|i}}{p_{i|j}})
+  
+  \\
+  \\
+  p_{i|j} = \frac{K(f^i_s,f^j_s)}{\sum^N_{j=1,i\neq j} K(f^i_t, f^j_t)}
+  
+  \end{cases}
+  $$
+  
+
+- Total loss:
+
+  $L_{kd} = L_{logit} + \alpha L_{PKT}+L_{reid}$
