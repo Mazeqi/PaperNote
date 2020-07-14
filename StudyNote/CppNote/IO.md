@@ -94,7 +94,7 @@ void open(const wchar_t *_Filename,
 
   ```C++
   // writing on a text file
-  #include <fiostream.h>
+  #include <iostream>
   int main () {
       ofstream out("out.txt");
       if (out.is_open()) 
@@ -394,4 +394,91 @@ void dfsFolder(string folderPath, ofstream &fout)
     fout.close();
 }
 ```
+
+
+
+
+
+## _mkdir
+
+- [参考1](https://blog.csdn.net/sinat_41104353/article/details/83149441)  [参考2](https://blog.csdn.net/hanxiucaolss/article/details/96114793?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.compare&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.compare)
+
+```C++
+#include<io.h>
+
+//当pathname为文件时，_access函数判断文件是否存在，并判断文件是否可以用mode值指定的模式进行访问。
+int _access(const char *pathname, int mode);
+//arg :pathname 为文件路径或目录路径， mode 为访问权限（在不同系统中可能用不能的宏定义重新定义）。
+//return :如果文件具有指定的访问权限，则函数返回0；如果文件不存在或者不能访问指定的权限，则返回-1。
+//00——只检查文件是否存在 02——写权限 04——读权限 06——读写权限
+
+#include<direct.h>
+
+int _mkdir( const char *dirname );
+//arg: dirname是指向目录的路径名指针。
+//return 返回0表示创建目录成功，返回-1表示失败。
+//只能创建一级目录，即dirname倒数第二级必须是已经存在，否则创建不成功,因此当有多级目录时，在创建之前，需要检验路径或者文件是否存在，用_access(dirname,0)来检验，返回0表示存在，-1不存在。
+
+//demo1
+bool createDir(string dirPath) {
+	if (_access(dirPath.c_str(), 0) == -1) {
+		if (_mkdir(dirPath.c_str()) == -1) {
+			cout << "Create dir " << dirPath << "error ! \n";
+			return false;
+		}
+		
+	}
+	return true;
+}
+
+```
+
+
+
+## is_emptyFile
+
+```C++
+bool is_emptyFile(string filePath) {
+	char ch;
+	ifstream fin(filePath, ios::in);
+
+
+	if (fin.is_open()) {
+		return true;
+	}
+
+	ch = fin.get();
+
+	if (ch == EOF) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+```
+
+
+
+## modify a part
+
+- [参考](https://blog.csdn.net/qq_31175231/article/details/81985263)
+- 只修改一部分内容但不覆盖
+
+```c
+#include<fstream>
+using namespace std;
+ 
+int main()
+{
+	fstream fs("F:\\test.txt", ios::binary | ios::out | ios::in);
+	//跳转到开头的第二个字节位置进行写入，正常写入
+	fs.seekp(2,ios::beg);
+	fs.write("!!!", 3);
+	fs.close();
+	return 0;
+}
+```
+
+
 

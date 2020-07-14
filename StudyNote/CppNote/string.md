@@ -4,7 +4,7 @@
 
 
 
-## int to char
+## int to char  char to int
 
 ```C++
 _itoa_s 函数原型如下：
@@ -23,6 +23,8 @@ _itoa_s 函数原型如下：
 
 _itoa_s(i,buffer,2,10);//10表示10进制2表示字符长度buffer表示存放结果
 std::string file=string(buffer);
+
+int a = itoa(buffer)
 ```
 
 
@@ -108,6 +110,36 @@ vector<string> split2(const string &str, const string &pattern)
     delete[] strc;
     return res;
 }
+
+vector<string> splitString(string& str, string& pattern)
+{
+	vector <string> sVec;
+
+	if (str == "") {
+		return sVec;
+	}
+	str += pattern;
+
+	char strTochar[100];
+	strcpy(strTochar, str.c_str());
+
+	char pat[100];
+	strcpy(pat, pattern.c_str());
+
+	char* res;
+	res = strtok(strTochar, pat);
+
+	while (res)
+	{
+		
+		sVec.push_back(string(res));
+		res = strtok(NULL, pat);
+		
+	}
+	return sVec;
+	//return 0;
+}
+
 ```
 
 
