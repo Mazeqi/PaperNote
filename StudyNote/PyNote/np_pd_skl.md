@@ -1,8 +1,8 @@
 [TOC]
 
-# numpy
 
-## np.arange
+
+# np.arange
 
 ```python
 #生成几个相同的数组并合成一个shape = [20,5]
@@ -11,7 +11,7 @@
 
 
 
-## 双冒号
+# 双冒号
 
 ```python
 seq[start:end:step]
@@ -19,7 +19,7 @@ seq[start:end:step]
 
 
 
-## np.dtype np.size...
+# np.dtype np.size...
 
 ```python
 import numpy as np  
@@ -35,7 +35,7 @@ print("数组的维度数目",a1.ndim)      #打印数组的维度数目
 
 
 
-## np.tile
+# np.tile
 
 - [参考](https://www.jianshu.com/p/4b74a367833c)
 
@@ -108,7 +108,7 @@ tile(A, reps)
 
 
 
-## np.nonzero
+# np.nonzero
 
 - [参考](https://blog.csdn.net/zhihaoma/article/details/51235016)
 
@@ -162,7 +162,7 @@ box_filter = boxes[filter_index[0], filter_index[1], filter_index[2]]
 
 
 
-## numpy.axis
+# numpy.axis
 
 - [参考1](https://blog.csdn.net/weixin_38145317/article/details/79650188)
 - [参考2](https://blog.csdn.net/sky_kkk/article/details/79725646)
@@ -238,7 +238,7 @@ array([[1, 2, 0, 1],
 
 
 
-## c = [True, False]  a[c]
+# c = [True, False]  a[c]
 
 ```python
 c = np.array([
@@ -257,7 +257,7 @@ print(a[c])
 
 
 
-## np.argsort
+# np.argsort
 
 - [参考](https://www.jianshu.com/p/64c607d49528)
 
@@ -286,3 +286,8 @@ Two-dimensional array:
            [0, 1]])
 ```
 
+
+
+# np.fromfile
+
+- [参考](https://www.jianshu.com/p/e9f6b15318be)
