@@ -9,6 +9,31 @@
 
 
 
+# variable
+
+- [参考](https://blog.csdn.net/u012370185/article/details/94391428)
+
+Varibale包含三个属性：
+
+- data：存储了Tensor，是本体的数据
+- grad：保存了data的梯度，本事是个Variable而非Tensor，与data形状一致
+- grad_fn：指向Function对象，用于反向传播的梯度计算之用
+
+```python
+# torch.autograd.Variable是Autograd的核心类，它封装了Tensor，并整合了反向传播的相关实现(tensor变成variable之后才能进行反向传播求梯度?用变量.backward()进行反向传播之后,var.grad中保存了var的梯度)
+
+x = Variable(tensor, requires_grad = True)
+
+#demo
+import torch
+from torch.autograd import Variable
+ 
+x = Variable(torch.one(2,2), requires_grad = True)
+print(x)#其实查询的是x.data,是个tensor
+```
+
+
+
 # save load
 
 ```python
@@ -156,7 +181,7 @@ b = a.view_as(torch.Tensor(4, 2))
 
 # Dataset -> dataloader
 
-## dataset
+## dataset  from torch.util.data Dataset
 
 ```python
 class TensorDataset(Dataset):
@@ -190,7 +215,7 @@ class TensorDataset(Dataset):
 
 
 
-## DataLoader
+## DataLoader   from torch.util.data DataLoader
 
 - dataloaer:部分流程上有用的参数及其代码。
 
@@ -285,3 +310,24 @@ tensor([[1, 2, 3],
 
 
 
+# F.interpolate
+
+- [参考](https://blog.csdn.net/qq_41375609/article/details/103447744)
+
+- input (Tensor) – 输入张量
+
+- size (int or Tuple[int] or Tuple[int, int] or Tuple[int, int, int]) – 输出大小.
+
+- scale_factor (float or Tuple[float]) – 指定输出为输入的多少倍数。如果输入为tuple，其也要制定为tuple类型
+
+- mode (str) – 可使用的上采样算法，有’nearest’, ‘linear’, ‘bilinear’, ‘bicubic’ , ‘trilinear’和’area’. 默认使用’nearest’
+
+```python
+def interpolate(input, size=None, scale_factor=None, mode='nearest', align_corners=None):
+```
+
+
+
+# pad
+
+- [参考](https://zhuanlan.zhihu.com/p/95368411)
