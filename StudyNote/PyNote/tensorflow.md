@@ -646,3 +646,18 @@ self.writer.add_summary(summary_, step)
 
 
 
+## tf.rsqrt - tf.square
+
+```python
+# tf.rsqrt 函数用于计算 x 元素的平方根的倒数.
+rsqrt(
+    x,
+    name=None
+)
+# 计算 x 元素的平方.
+square(
+    x,
+    name=None
+)
+```
+
