@@ -6,7 +6,7 @@
 
 ![structure](./img/yolov4-structure.png)
 
-# 创新
+# Innovation
 
 ## Mosaic
 
@@ -224,3 +224,71 @@ class DropBlock2D(nn.Module):
         return self.drop_prob / (self.block_size ** 2)
 ```
 
+
+
+# Improvement
+
+![](./img/normal-bn.png)
+
+假设输入维度是(N,C,H,W),不管哪一层归一化手段，都不会改变输出大小，即输出维度也是(N,C,H,W)。
+
+## BN
+
+![](./img/alogrithm-bn.png)
+
+  BN本质意思就是在Batch和HxW维度进行归一化，可以看出和batch相关，如果batch比较小，那么可能统计就不准确。并且**由于测试时候batch可能和训练不同，导致分布不一致，故还多了两个参数：全局统计的均值和方差值**，从而**eval模式**是必须开的.
+
+```python
+m = nn.BatchNorm2d(100)
+m = nn.BatchNorm2d(100,affine = False)
+input = torch.randn(20,100,35,45)
+output = m(input)
+```
+
+
+
+## LN
+
+​	对于LN，**其归一化维度是C、HxW维度或者HxW维度或者W维度，但是不可以归一化维度为H**，可以设置，比较灵活，其对每个batch单独进行各自的归一化操作，归一化操作时候不考虑batch，所以可以保证训练和测试一样。 
+
+```python
+m = nn.LayerNorm(normalized_shape=[100 ,35 ,45])
+input = torch.randn(20, 100, 35, 45)
+```
+
+​	其可学习权重维度是(100,35,45)：**对batch输入计算均值和方差(C、H和W维度求均值)，输出维度为(N,)，然后对输入(N,C,H,W)采用计算出来的(N,)个值进行广播归一化操作，最后再乘上可学习的(C,H,W)个权重参数即可**。当然也可以设置为(35,45)，意思同样理解。
+
+​	可以看出其归一化是在指定输入shape情况下的归一化，和batch无关。故可以保证训练和测试一致，**不需要强制开启eval模式**。
+
+**通过设置输入参数shape为(H,W),其实就是IN归一化了，比较灵活。**
+
+
+
+## IN
+
+
+
+```python
+m = nn.InstanceNorm2d(100)
+m = nn.InstanceNorm2d(100, affine = True)
+input = torch.randn(20,100,35,45)
+output = m(input)
+```
+
+ 	输入参数必须且只能是C，其内部计算是：**对batch输入计算均值和方差(H,W维度求均值方差)，输出维度为(N,C),然后对输入(N,C,H,W)采用计算出来的(N,C)个值进行广播归一化操作，最后再乘上可学习的(C,)个权重参数即可**。
+
+​	由于其计算均值和方差和batch没有关系，故也不需要强制开启eval模式。
+
+
+
+## GN
+
+ 	GN是介于LN和IN之间的操作，多了一个group操作
+
+```python
+input = torch.randn(20, 6, 10, 10)
+m = nn.GroupNorm(3,6)
+output = m(input)
+```
+
+​	 注意第一个参数分组数必须能够将输入通道整除，否则会报错，因为无法均匀分组。其内部计算是：**对batch输入计算均值和方差(C/组数、H,W维度求均值方差)，输出维度为(N,组数),然后对输入(N,C,H,W)采用计算出来的(N,组数)个值进行广播归一化操作，最后再乘上可学习的(C,)个权重参数即可**。不需要强制开启eval模式。
