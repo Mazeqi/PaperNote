@@ -291,3 +291,13 @@ Two-dimensional array:
 # np.fromfile
 
 - [参考](https://www.jianshu.com/p/e9f6b15318be)
+
+
+
+# np.random.binomial(n,p,size = None)
+
+- 这是二项分布
+- n：int型或者一个int型的数组，大于等于0，接受浮点数但是会被变成整数来使用。
+- p：float或者一组float的数组，大于等于0且小于等于1.
+- size：可选项，int或者int的元祖，表示的输出的大小，如果提供了size，例如(m,n,k)，那么会返回m*n*k个样本。如果size=None，也就是默认没有的情况，当n和p都是一个数字的时候只会返回一个值，否则返回的是np.broadcast(n,p).size个样本.
+- return :一个数字或者一组数字,每个样本返回的是n次试验中事件A发生的次数。
