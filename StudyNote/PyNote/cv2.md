@@ -183,3 +183,104 @@ def video_detect(self, cap):
 
 ```
 
+
+
+## how to save mp4
+
+- [参考1](https://blog.csdn.net/qq_34106574/article/details/90265603) [参考2](https://blog.csdn.net/qq_36387683/article/details/91851206)
+- **`cv2.VideoCapture.get(propId)`** 访问视频的某些功能，其中propId是一个从0到18的数字，每个数字表示视频的属性（Property Identifier）。
+- **`retval = cv2.VideoCapture.set(propId,value)`**
+  其中一些值可以使用 cap.set(propId，value) 进行修改，value是修改后的值。
+  例如：通过cap.get（3）和cap.get（4）来检查帧的宽度和高度，默认的值是640x480。现修改为320x240，使用`ret = cap.set（3, 320）`和`ret = cap.set（4, 240）`。
+- **`retval,image= cv2.VideoCapture.read([,image])`** 抓取，解码并返回下一个视频帧。返回值为true表明抓取成功。该函数是组合了grab()和retrieve()，这是最方便的方法。如果没有帧，该函数返回false，并输出空图像。
+- **`retval, image = cv2.VideoCapture.retrieve([, image[, flag]])`** 解码并返回抓取的视频帧
+- **`retval = cv2.VideoCapture.grab()`** 从视频文件或相机中抓取下一帧。true为抓取成功。该函数主要用于多摄像头时。
+- **`cv2.VideoCapture.release()`** 关闭视频文件或相机设备。
+
+```python
+import cv2
+
+#调用摄像头
+capture = cv2.VideoCapture(0)
+
+#调用视频
+capture = cv2.VideoCapture(“1.mp4”)
+
+#定义编码器并创建VideoWriter对象
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+out = cv2.VideoWriter('output/detect2.mp4',fourcc,20.0,(width,height))
+while(True):
+    t1 = time.time()
+    # 读取某一帧
+    ref,frame=capture.read()
+    # 格式转变，BGRtoRGB
+    frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+    # 转变成Image
+    frame = Image.fromarray(np.uint8(frame))
+
+    # 进行检测
+    frame = np.array(yolo.detect_image(frame))
+
+    # RGBtoBGR满足opencv显示格式
+    frame = cv2.cvtColor(frame,cv2.COLOR_RGB2BGR)
+
+    fps  = ( fps + (1./(time.time()-t1)) ) / 2
+    print("fps= %.2f"%(fps))
+    
+    frame = cv2.putText(frame, "fps= %.2f"%(fps), (0, 40),
+    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+    cv2.imshow("video",frame)
+    out.write(frame)
+
+    c= cv2.waitKey(30) & 0xff 
+    if c==27:
+        capture.release()
+        break
+
+capture.release()
+out.release()
+cv2.destroyAllWindows()
+
+```
+
+- **` out = cv.VideoWriter( filename, fourcc, fps, frameSize[, isColor] )`**
+  - filename：给要保存的视频起个名字
+  - fourcc：指定视频编解码器的4字节代码
+    - 【（‘P’，‘I’，‘M’，‘1’）是MPEG-1编解码器】
+    - 【（‘M’，‘J’，‘P’，'G '）是一个运动jpeg编解码器】
+  -  fps：帧率
+  -  frameSize：帧大小
+
+- **`retval = cv2.VideoWriter_fourcc( c1, c2, c3, c4 )`** 将4字符串接为fourcc代码。
+- **`cv.VideoWriter.write( image )`** 将帧图像保存为视频文件。
+  isColor：如果为true，则视频为彩色，否则为灰度视频，默认为true
+
+```python
+import cv2
+ 
+cap = cv2.VideoCapture(0)				#打开相机
+ 
+#创建VideoWriter类对象
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
+ 
+while(cap.isOpened()):
+    ret, frame = cap.read()				#捕获一帧图像
+    if ret==True:
+        frame = cv2.flip(frame,0)			#沿x轴翻转
+        out.write(frame)					#保存帧
+ 
+        cv2.imshow('frame',frame)  		#显示帧
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    else:
+        break
+ 
+cap.release() #关闭相机
+out.release()
+cv2.destroyAllWindows()
+```

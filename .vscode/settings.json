@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "*.ipynb": "jupyter",
+        "*.js": "javascript",
+        "deque": "cpp",
+        "forward_list": "cpp",
+        "iterator": "cpp",
+        "list": "cpp",
+        "memory": "cpp",
+        "vector": "cpp",
+        "xhash": "cpp",
+        "xstring": "cpp",
+        "xtree": "cpp",
+        "xutility": "cpp"
+    }
+}
