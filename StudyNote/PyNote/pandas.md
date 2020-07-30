@@ -47,3 +47,103 @@ data['Unit Name'].value_counts()
 DataFrame.sample(n=None, frac=None, replace=False, weights=None, random_state=None, axis=None)[source]
 ```
 
+
+
+# scipy.signal.resample
+
+- [参考](https://vimsky.com/examples/usage/python-scipy.signal.resample.html)
+
+- 使用傅里叶方法沿给定轴将x重新采样为num个采样。
+
+- 重采样的信号从与x相同的值开始，但以`len(x) / num * (spacing of x)`。因为使用了傅里叶方法，所以假定信号是周期性的。
+
+```python
+from scipy import signal
+'''
+x：array_like
+要重新采样的数据。
+num：int
+重采样信号中的采样数。
+t：array_like, 可选参数
+如果给定t，则假定为x中与信号数据关联的等距采样位置。
+axis：int, 可选参数
+重新采样的x轴。默认值为0。
+window：array_like, callable, string, float, 或 tuple, 可选参数
+指定在傅立叶域中应用于信号的窗口。有关详情，请参见下文。
+返回值：
+resampled_x或(resampled_x，resampled_t)
+重新采样的数组，或者，如果给定了t，则包含重新采样的数组和相应的重新采样位置的元组。
+'''
+scipy.signal.resample(x, num, t=None, axis=0, window=None)
+```
+
+
+
+# drop
+
+```python
+#labels 就是要删除的行列的名字，用列表给定
+#axis 默认为0，指删除行，因此删除columns时要指定axis=1；
+#index 直接指定要删除的行
+#columns 直接指定要删除的列
+#inplace=False，默认该删除操作不改变原数据，而是返回一个执行删除操作后的新dataframe；
+#inplace=True，则会直接在原数据上进行删除操作，删除后无法返回。
+
+# 因此，删除行列有两种方式：
+# 1）labels=None,axis=0 的组合
+# 2）index或columns直接指定要删除的行或列
+
+>>>df = pd.DataFrame(np.arange(12).reshape(3,4), columns=['A', 'B', 'C', 'D'])
+
+>>>df
+
+   A   B   C   D
+
+0  0   1   2   3
+
+1  4   5   6   7
+
+2  8   9  10  11
+
+#Drop columns,两种方法等价
+
+>>>df.drop(['B', 'C'], axis=1)
+
+   A   D
+
+0  0   3
+
+1  4   7
+
+2  8  11
+
+>>>df.drop(columns=['B', 'C'])
+
+   A   D
+
+0  0   3
+
+1  4   7
+
+2  8  11
+
+# 第一种方法下删除column一定要指定axis=1,否则会报错
+>>> df.drop(['B', 'C'])
+
+ValueError: labels ['B' 'C'] not contained in axis
+
+#Drop rows
+>>>df.drop([0, 1])
+
+   A  B   C   D
+
+2  8  9  10  11
+
+>>> df.drop(index=[0, 1])
+
+   A  B   C   D
+   
+2  8  9  10  11
+
+```
+

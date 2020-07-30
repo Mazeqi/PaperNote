@@ -331,3 +331,151 @@ def interpolate(input, size=None, scale_factor=None, mode='nearest', align_corne
 # pad
 
 - [参考](https://zhuanlan.zhihu.com/p/95368411)
+
+
+
+# NLLLoss
+
+- [参考](https://blog.csdn.net/weixin_40476348/article/details/94562240)
+
+常用于多分类任务，NLLLoss 函数输入 input 之前，需要对 input 进行 log_softmax 处理，即将 input 转换成概率分布的形式，并且取对数，底数为e
+
+```python
+class torch.nn.NLLLoss(weight=None, size_average=None, ignore_index=-100, 
+					   reduce=None, reduction='mean')
+```
+
+计算公式：loss(input, class) = -input[class]
+公式理解：input = [-0.1187, 0.2110, 0.7463]，target = [1]，那么 loss = -0.2110
+官方文档中介绍称： nn.NLLLoss输入是一个对数概率向量和一个目标标签，它与nn.CrossEntropyLoss的关系可以描述为：softmax(x)+log(x)+nn.NLLLoss====>nn.CrossEntropyLoss
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+torch.manual_seed(2019)
+
+output = torch.randn(1, 3)  # 网络输出
+target = torch.ones(1, dtype=torch.long).random_(3)  # 真实标签
+print(output)
+print(target)
+
+# 直接调用
+loss = F.nll_loss(output, target)
+print(loss)
+
+# 实例化类
+criterion = nn.NLLLoss()
+loss = criterion(output, target)
+print(loss)
+
+"""
+tensor([[-0.1187,  0.2110,  0.7463]])
+tensor([1])
+tensor(-0.2110)
+tensor(-0.2110)
+"""
+
+```
+
+如果 input 维度为 M x N，那么 loss 默认取 M 个 loss 的平均值，reduction='none' 表示显示全部 loss
+
+```
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+torch.manual_seed(2019)
+
+output = torch.randn(2, 3)  # 网路输出
+target = torch.ones(2, dtype=torch.long).random_(3)  # 真实标签
+print(output)
+print(target)
+
+# 直接调用
+loss = F.nll_loss(output, target)
+print(loss)
+
+# 实例化类
+criterion = nn.NLLLoss(reduction='none')
+loss = criterion(output, target)
+print(loss)
+
+"""
+tensor([[-0.1187,  0.2110,  0.7463],
+        [-0.6136, -0.1186,  1.5565]])
+tensor([2, 0])
+tensor(-0.0664)
+tensor([-0.7463,  0.6136])
+"""
+
+```
+
+
+
+# CrossEntropyLoss
+
+- [参考](https://blog.csdn.net/Jeremy_lf/article/details/102725285)
+
+log_softmax是指在softmax函数的基础上，再进行一次log运算，此时结果有正有负，log函数的值域是负无穷到正无穷，当x在0—1之间的时候，log(x)值在负无穷到0之间。
+
+```python
+CrossEntropyLoss()=log_softmax() + NLLLoss() 
+
+loss=torch.nn.NLLLoss()
+target=torch.tensor([0,1,2])
+loss(input,target)
+Out[26]: tensor(-0.1399)
+loss =torch.nn.CrossEntropyLoss()
+input = torch.tensor([[ 1.1879,  1.0780,  0.5312],
+        [-0.3499, -1.9253, -1.5725],
+        [-0.6578, -0.0987,  1.1570]])
+target = torch.tensor([0,1,2])
+loss(input,target)
+Out[30]: tensor(0.1365)
+```
+
+
+
+# conv init
+
+- [参考1](https://www.zhihu.com/question/313869702) [参考2](https://blog.csdn.net/hyk_1996/article/details/82118797) [参考3](https://blog.csdn.net/dss_dssssd/article/details/83990511)
+
+```python
+def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Conv2d):
+                # nn.init.constant_(m.weight, 0)
+                # nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+                    
+ # 1. 根据网络层的不同定义不同的初始化方式     
+def weight_init(m):
+    if isinstance(m, nn.Linear):
+        nn.init.xavier_normal_(m.weight)
+        nn.init.constant_(m.bias, 0)
+    # 也可以判断是否为conv2d，使用相应的初始化方式 
+    elif isinstance(m, nn.Conv2d):
+        nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+     # 是否为批归一化层
+    elif isinstance(m, nn.BatchNorm2d):
+        nn.init.constant_(m.weight, 1)
+        nn.init.constant_(m.bias, 0)
+```
+
+
+
+# loss
+
+- [参考](https://blog.csdn.net/dss_dssssd/article/details/84036913)

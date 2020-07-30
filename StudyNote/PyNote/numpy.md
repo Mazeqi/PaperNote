@@ -301,3 +301,253 @@ Two-dimensional array:
 - p：float或者一组float的数组，大于等于0且小于等于1.
 - size：可选项，int或者int的元祖，表示的输出的大小，如果提供了size，例如(m,n,k)，那么会返回m*n*k个样本。如果size=None，也就是默认没有的情况，当n和p都是一个数字的时候只会返回一个值，否则返回的是np.broadcast(n,p).size个样本.
 - return :一个数字或者一组数字,每个样本返回的是n次试验中事件A发生的次数。
+
+
+
+# np.random.randint
+
+```python
+numpy.random.randint(low,high=None,size=None,dtype)
+# 生成在半开半闭区间[low,high)上离散均匀分布的整数值;若high=None，则取值区间变为[0,low)
+```
+
+
+
+# np.random.random_integers()
+
+```python
+numpy.random.random_integers(low,high=None,size=None)
+# 生成闭区间[low,high]上离散均匀分布的整数值;若high=None，则取值区间变为[1,low]
+```
+
+
+
+# np.random.randn()
+
+```python
+numpy.random.rand(d0,d1,…dn)
+# 以给定的形状创建一个数组，数组元素来符合标准正态分布N(0,1)
+```
+
+
+
+# np.random.rand()
+
+```python
+numpy.random.rand(d0,d1,…dn)
+#以给定的形状创建一个数组，并在数组中加入在[0,1]之间均匀分布的随机样本。
+```
+
+
+
+# numpy.random.seed() & np.random.RandomState()
+
+```python
+np.random.seed(10)
+#这两个在数据处理中比较常用的函数，两者实现的作用是一样的，都是使每次随机生成数一样
+```
+
+
+
+# np.random.choice
+
+```python
+numpy.random.choice(a,size=None,replace=True,p=None)
+# 若a为数组，则从a中选取元素；若a为单个int类型数，则选取range(a)中的数
+# replace是bool类型，为True，则选取的元素会出现重复；反之不会出现重复
+# p为数组，里面存放自己输入的选到每个数的可能性，即概率
+```
+
+
+
+# numpy.random_sanmple()
+
+- [参考](https://blog.csdn.net/m0_38061927/article/details/75335069)
+
+```python
+numpy.random.random_sample(size=None)
+# 以给定形状返回[0,1)之间的随机浮点数
+```
+
+
+
+# np.random.normal
+
+- [参考](https://blog.csdn.net/lanchunhui/article/details/50163669)
+
+- 高斯分布密度函数
+
+$$
+f(x) = \frac{1}{\sqrt{2\pi} \rho} \exp(- \frac{(x - u)^2}{2 \rho^2})​
+$$
+
+
+
+```python
+numpy.random.normal(loc=0.0, scale=1.0, size=None)
+'''
+loc：float
+    此概率分布的均值（对应着整个分布的中心centre）
+scale：float
+    此概率分布的标准差（对应于分布的宽度，scale越大越矮胖，scale越小，越瘦高）
+size：int or tuple of ints
+    输出的shape，默认为None，只输出一个值
+'''
+```
+
+
+
+# np.random.uniform
+
+- [参考](https://blog.csdn.net/u013920434/article/details/52507173)
+
+```python
+numpy.random.uniform(low,high,size)
+# 从一个均匀分布[low,high)中随机采样，注意定义域是左闭右开，即包含low，不包含high.
+# low: 采样下界，float类型，默认值为0；
+# high: 采样上界，float类型，默认值为1；
+# size: 输出样本数目，为int或元组(tuple)类型，例如，size=(m,n,k), 则输出m*n*k个样本，缺省时输出1个值。
+```
+
+
+
+# np to add noise
+
+- [参考](https://blog.csdn.net/weixin_44191286/article/details/86437924)
+
+```python
+# 1.产生噪音那使用开根号是因为开根号后的数乘上所有的噪音信号，这样在计算噪音强度的时候可以直接提出来。
+# 2.因为原本的噪音本身是有强度的所以需要除一下，而添加高斯白噪音的时候就不需要添加，是因为高斯白噪声本身的强度和其方差是一样的，是1
+
+# 信噪比： snr =10 log_{10} (P_{singal} / p_{noise})
+#原始噪音(d)的信号强度：P_d
+#所需要的噪音强度：P_noise=P_signal / 10**(SNR / 10)
+#所需要产生的噪音：noise=np.sqrt(P_noise / P_d) * d
+# 产生的噪音强度为(SNR)的含噪信号：NoiseSignal = x + noise
+def Add_noise(x, d, SNR):
+     P_signal=np.sum(abs(x)**2)
+     P_d=np.sum(abs(d)**2)
+     P_noise=P_signal/10**(SNR/10)
+     noise=np.sqrt(P_noise/P_d)*d
+     return noise_signal=x+noise
+
+
+
+# SNR_db=kwargs.get("noise_SNR_db",[5,15])
+def jitter(x, snr_db):
+    """
+    根据信噪比添加噪声
+    :param x:
+    :param snr_db: [min, max]
+    :return:
+    """
+    # 随机选择信噪比
+    assert isinstance(snr_db, list)
+    snr_db_low = snr_db[0]
+    snr_db_up = snr_db[1]
+    snr_db = np.random.randint(snr_db_low, snr_db_up, (1,))[0]
+    # 信噪比, 要先除以10然后才能得出
+    snr = 10 ** (snr_db / 10)
+    
+    Xp = np.sum(x ** 2, axis=0, keepdims=True) / x.shape[0]  # 计算信号功率
+    Np = Xp / snr  # 计算噪声功率
+    n = np.random.normal(size=x.shape, scale=np.sqrt(Np), loc=0.0)  # 计算噪声
+    xn = x + n
+    return xn
+
+# 高斯白噪声
+def wgn(x, snr):
+	 P_signal = np.sum(abs(x)**2)/len(x)
+ 　　P_noise = P_signal/10**(snr/10.0)
+ 　　return np.random.randn(len(x)) * np.sqrt(P_noise)
+
+```
+
+
+
+# np to normalize
+
+- [参考](https://www.jianshu.com/p/0d8bb02f98fb)
+
+- **线性归一化 **[0,1]之间
+
+$$
+x^` = \frac{x - min(x)}{max(x) - min(x)}
+$$
+
+```python
+def Normalization(x):
+    return [(float(i)-min(x))/float(max(x)-min(x)) for i in x]
+    
+# 或者调用sklearn包的方法
+from sklearn import preprocessing   
+import numpy as np  
+X = np.array([[ 1., -1.,  2.],  
+              [ 2.,  0.,  0.],  
+              [ 0.,  1., -1.]])  
+min_max_scaler = preprocessing.MinMaxScaler()  
+X_minMax = min_max_scaler.fit_transform(X)  
+
+```
+
+- **线性归一化 **[-1,1]之间
+
+$$
+x^* = \frac{x - x_{mean}}{x_{max} - x_{min}}
+$$
+
+```python
+def Normalization2(x):
+    return [(float(i)-np.mean(x))/(max(x)-min(x)) for i in x]
+```
+
+- **标准差化**
+
+  也称为z-score标准化。这种方法根据原始数据的均值（mean）和标准差（standard deviation）进行数据的标准化。经过处理的数据符合标准正态分布，即均值为0，标准差为1，其转化函数为：
+  $$
+  x^* = \frac{x - u}{\rho}
+  $$
+  其中μ为所有样本数据的均值，σ为所有样本数据的标准差。
+
+> 在分类、聚类算法中，需要使用距离来度量相似性的时候、或者使用PCA技术进行降维的时候，Z-score标准化表现更好。
+
+```python
+from sklearn import preprocessing   
+import numpy as np  
+X = np.array([[ 1., -1.,  2.],  
+              [ 2.,  0.,  0.],  
+              [ 0.,  1., -1.]])  
+# calculate mean  
+X_mean = X.mean(axis=0)  
+# calculate variance   
+X_std = X.std(axis=0)  
+# standardize X  
+X1 = (X-X_mean)/X_std  # 自己计算
+# use function preprocessing.scale to standardize X  
+X_scale = preprocessing.scale(X)  # 调用sklearn包的方法
+# 最终X1与X_scale等价
+```
+
+- **非线性归一化**
+
+  经常用在数据分化比较大的场景，有些数值很大，有些很小。通过一些数学函数，将原始值进行映射。该方法包括 log、指数，正切等。需要根据数据分布的情况，决定非线性函数的曲线，比如log(V, 2)还是log(V, 10)等。
+
+
+
+# np.concatenate
+
+- 传入的参数必须是**一个多个数组的元组或者列表**
+- 另外需要指定拼接的方向，默认是 axis = 0，也就是说对0轴的数组对象进行纵向的拼接（纵向的拼接沿着axis= 1方向）；**注：一般axis = 0，就是对该轴向的数组进行操作，操作方向是另外一个轴，即axis=1。**
+
+```python
+In [23]: a = np.array([[1, 2], [3, 4]])
+
+In [24]: b = np.array([[5, 6]])
+
+In [25]: np.concatenate((a, b), axis=0)
+Out[25]:
+array([[1, 2],
+       [3, 4],
+       [5, 6]])
+```
+
