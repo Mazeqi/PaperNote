@@ -236,3 +236,13 @@ ValueError: labels ['B' 'C'] not contained in axis
 
 ```
 
+
+
+# unique
+
+- 下面代码将取「name」列的唯一实体：
+
+```python
+df["name"].unique()
+```
+
