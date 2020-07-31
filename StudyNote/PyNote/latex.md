@@ -50,6 +50,17 @@ $$
   $$
   
 
+
+
+- demo3
+  $$
+  \begin{cases}
+  		x, 						  &&&&  if \ \ x\geq 0 \\
+  		negative\_slope \times x, &&&&  otherwise
+  \end{cases}
+  $$
+  
+
 ## 花体 \mathcal  和对齐
 
 - [对齐参考](https://blog.csdn.net/bendanban/article/details/77336206)
@@ -62,6 +73,16 @@ $$
 &（\mathcal N）& 常用来表示高斯分布\\
 
 \end{eqnarray}
+$$
+
+$$
+\begin{aligned}
+
+&（\mathcal L）& 常用来表示损失函数\\
+&（\mathcal D）& 表示样本 \\
+&（\mathcal N）& 常用来表示高斯分布\\
+
+\end{aligned}
 $$
 
 

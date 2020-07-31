@@ -181,7 +181,7 @@ b = a.view_as(torch.Tensor(4, 2))
 
 # Dataset -> dataloader
 
-## dataset  from torch.util.data Dataset
+## dataset  from torch.utils.data import Dataset
 
 ```python
 class TensorDataset(Dataset):
@@ -215,7 +215,7 @@ class TensorDataset(Dataset):
 
 
 
-## DataLoader   from torch.util.data DataLoader
+## DataLoader   from torch.utils.data DataLoader
 
 - dataloaer:部分流程上有用的参数及其代码。
 
@@ -323,6 +323,7 @@ tensor([[1, 2, 3],
 - mode (str) – 可使用的上采样算法，有’nearest’, ‘linear’, ‘bilinear’, ‘bicubic’ , ‘trilinear’和’area’. 默认使用’nearest’
 
 ```python
+# 实现插值和上采样
 def interpolate(input, size=None, scale_factor=None, mode='nearest', align_corners=None):
 ```
 
@@ -332,9 +333,283 @@ def interpolate(input, size=None, scale_factor=None, mode='nearest', align_corne
 
 - [参考](https://zhuanlan.zhihu.com/p/95368411)
 
+# toch.nn
+
+- [参考 ](https://www.cnblogs.com/wanghui-garcia/p/10791778.html) [loss参考](https://blog.csdn.net/dss_dssssd/article/details/84036913)
+
+## conv init
+
+- [参考1](https://www.zhihu.com/question/313869702) [参考2](https://blog.csdn.net/hyk_1996/article/details/82118797) [参考3](https://blog.csdn.net/dss_dssssd/article/details/83990511)
+
+```python
+def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Conv2d):
+                # nn.init.constant_(m.weight, 0)
+                # nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+                    
+ # 1. 根据网络层的不同定义不同的初始化方式     
+def weight_init(m):
+    if isinstance(m, nn.Linear):
+        nn.init.xavier_normal_(m.weight)
+        nn.init.constant_(m.bias, 0)
+    # 也可以判断是否为conv2d，使用相应的初始化方式 
+    elif isinstance(m, nn.Conv2d):
+        nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+     # 是否为批归一化层
+    elif isinstance(m, nn.BatchNorm2d):
+        nn.init.constant_(m.weight, 1)
+        nn.init.constant_(m.bias, 0)
+```
+
+## Conv2d
+
+- 二维卷积层, 输入的尺度是(N, Cin,H,W)，输出尺度（N,Cout,Hout,Wout）的计算方式： 
+  $$
+  out(N_i, C_{out_j}) = bias(C_{out_{j}}) + \sum^{C_{in}-1}_{k=0} wight(C_{out_{j}},k) * input(N_i, k)
+  $$
+
+- shape 输出的height和width的计算
+  $$
+  H_{out} = [\frac{H_{in} + 2 \times padding[0] - dilation[0] \times (kernel\_ size[0]-1)-1}
+  {stride[0]}
+  +1]
+  
+  \\
+  W_{out} = [\frac{W_{in} + 2 \times padding[1] - dilation[1] \times (kernel\_ size[1]-1)-1}
+  {stride[1]}
+  +1]
+  $$
+  
+
+```python
+class torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
+'''
+in_channels(int) – 输入信号的通道
+out_channels(int) – 卷积产生的通道
+kerner_size(int or tuple) - 卷积核的尺寸
+stride(int or tuple, optional) - 卷积步长，默认为1
+padding(int or tuple, optional) - 输入的每一条边补充0的层数，默认为0
+dilation(int or tuple, optional) – 卷积核元素之间的间距,默认为1
+groups(int, optional) – 从输入通道到输出通道的阻塞连接数。默认为1
+bias(bool, optional) - 如果bias=True，添加可学习的偏置到输出中
+'''
+```
 
 
-# NLLLoss
+
+## ConvTranspose2d
+
+`stride`: 控制相关系数的计算步长 
+`dilation`: 用于控制内核点之间的距离
+`groups`: 控制输入和输出之间的连接： 
+
+- `group=1`，输出是所有的输入的卷积；
+- `group=2`，此时相当于有并排的两个卷积层，每个卷积层计算输入通道的一半，并且产生的输出是输出通道的一半，随后将这两个输出连接起来。 
+
+参数`kernel_size`，`stride`，`padding`，`dilation`数据类型：
+
+- 可以是一个`int`类型的数据，此时卷积height和width值相同;
+- 也可以是一个`tuple`数组（包含来两个`int`类型的数据），第一个`int`数据表示`height`的数值，第二个`int`类型的数据表示width的数值
+
+$$
+H_{out} = (H_{in}-1) \times stride[0] - 2 \times padding[0]+kernel\_ size[0] + output\_padding[0]
+\\
+W_{out} = (W_{in}-1) \times stride[1] - 2 \times padding[1]+kernel\_ size[1] + output\_padding[1]
+$$
+
+- in_channels(int) – 输入信号的通道数
+- out_channels(int) – 卷积产生的通道数
+- kerner_size(int or tuple) - 卷积核的大小
+- stride(int or tuple,optional) - 卷积步长
+- padding(int or tuple, optional) - 输入的每一条边补充padding= kernel - 1 - padding,即(kernel_size - 1)/20的层数，所以补充完高宽都增加(kernel_size - 1)
+- output_padding(int or tuple, optional) - 在输出的每一个维度的一边补充0的层数，所以补充完高宽都增加padding，而不是2*padding，因为只补一边
+- dilation(int or tuple, optional) – 卷积核元素之间的间距
+- groups(int, optional) – 从输入通道到输出通道的阻塞连接数
+- bias(bool, optional) - 如果bias=True，添加偏置
+
+```python
+# 对由多个输入平面组成的输入图像应用二维转置卷积操作。
+class torch.nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=1, padding=0, output_padding=0, groups=1, bias=True, dilation=1)
+```
+
+
+
+## BatchNorm2d
+
+```python
+# 对小批量(mini-batch)3d数据组成的4d输入进行批标准化(Batch Normalization)操作
+# xnew = (1-momentum) * x + momentum * xt
+'''
+num_features： C来自期待的输入大小(N,C,H,W)
+eps： 即上面式子中分母的ε ，为保证数值稳定性（分母不能趋近或取0）,给分母加上的值。默认为1e-5。
+momentum： 动态均值和动态方差所使用的动量。默认为0.1。
+affine： 一个布尔值，当设为true，给该层添加可学习的仿射变换参数，即γ与β。
+track_running_stats：一个布尔值，当设置为True时，该模块跟踪运行的平均值和方差，当设置为False时，该模块不跟踪此类统计数据，并且始终在train和eval模式中使用批处理统计数据。默认值:True
+'''
+class torch.nn.BatchNorm2d(num_features, eps=1e-05, momentum=0.1, affine=True)
+```
+
+
+
+## MaxPool2d
+
+```python
+class torch.nn.MaxPool2d(kernel_size, stride=None, padding=0, dilation=1, return_indices=False, ceil_mode=False)
+'''
+kernel_size(int or tuple) - max pooling的窗口大小
+stride(int or tuple, optional) - max pooling的窗口移动的步长。默认值是kernel_size
+padding(int or tuple, optional) - 输入的每一条边补充0的层数
+dilation(int or tuple, optional) – 一个控制窗口中元素步幅的参数
+return_indices - 如果等于True，会返回输出最大值的序号，对于上采样操作torch.nn.MaxUnpool2d会有帮助
+ceil_mode - 如果等于True，计算输出信号大小的时候，会使用向上取整ceil，代替默认的向下取整floor的操作
+'''
+```
+
+
+
+## AdaptiveAvgPool2d
+
+```python
+class torch.nn.AdaptiveAvgPool2d(output_size)
+# output_size: 输出信号的尺寸,可以用(H,W)表示H*W的输出，也可以使用单个数字H表示H*H大小的输出
+# 对输入信号，提供2维的自适应平均池化操作
+# ---------------------------------------
+input = torch.randn(1,64,8,9)
+m = nn.AdaptiveAvgPool2d((5,7))
+output = m(input)
+output.shape
+
+# output
+torch.Size([1, 64, 5, 7])
+
+```
+
+
+
+## ReLU
+
+```python
+class torch.nn.ReLU(inplace=False)
+# 对输入运用修正线性单元函数：
+# {ReLU}(x)= max(0, x)
+# inplace-选择是否进行原位运算，即x= x+1
+```
+
+
+
+## LeakyReLU
+
+$$
+\begin{eqnarray}
+
+& LeakyReLU(x) & = max(0,x) +negative\_slope * min(0,x) & \\
+
+& or   		   &  \\
+
+& LeakyReLU(x) & = 
+\begin{cases}
+		x, 						  &&&&  if \ \ x\geq 0 \\
+		negative\_slope \times x, &&&&  otherwise
+\end{cases}
+\\
+
+\end{eqnarray}
+$$
+
+
+
+```python
+class torch.nn.LeakyReLU(negative_slope=0.01, inplace=False)
+# 是ReLU的变形，Leaky  ReLU是给所有负值赋予一个非零斜率
+# negative_slope：控制负斜率的角度，默认等于0.01
+# inplace-选择是否进行原位运算，即x= x+1，默认为False
+```
+
+
+
+## Sigmoid
+
+$$
+Sigmoid(X) = \frac{1}{1 + \exp(-x)}
+$$
+
+
+
+```python
+class torch.nn.Sigmoid
+# 输出值的范围为[0,1]
+
+# demo
+m = nn.Sigmoid()
+input = torch.randn(2)
+output = m(input)
+input, output
+
+(tensor([-0.8425,  0.7383]), tensor([0.3010, 0.6766]))
+```
+
+
+
+## Tanh
+
+$$
+Tanh(x) = tanh(x) = \frac{
+e^x - e^{-x}
+}{
+e^x + e^{-x}
+}
+$$
+
+```python
+class torch.nn.Tanh
+
+# demo
+m = nn.Tanh()
+input = torch.randn(2)
+output = m(input)
+input, output
+(tensor([-0.6246,  0.1523]), tensor([-0.5543,  0.1512]))
+```
+
+
+
+## BCELoss
+
+- **weight** (*Tensor**,**可选*) – a manual rescaling weight given to the loss of each batch element. If given, has to be a Tensor of size “nbatch”.每批元素损失的手工重标权重。如果给定，则必须是一个大小为“nbatch”的张量。
+- **size_average** (*bool**, 可选*) – `弃用(见reduction参数)。默认情况下，设置为True，即对批处理中的每个损失元素进行平均。注意，对于某些损失，每个样本有多个元素。如果字段size_average设置为False，则对每个小批的损失求和。当reduce为False时，该参数被忽略。默认值:True`
+- **reduce** (*bool**,**可选*) – `弃用(见reduction参数)。默认情况下，设置为True，即根据size_average参数的值决定对每个小批的观察值是进行平均或求和。如果reduce为False，则返回每个批处理元素的损失，不进行平均和求和操作，即忽略size_average参数。默认值:True`
+- **reduction** (*string**,**可选*) – 指定要应用于输出的`reduction`操作:' none ' | 'mean' | ' sum '。“none”:表示不进行任何`reduction`，“mean”:输出的和除以输出中的元素数，即求平均值，“sum”:输出求和。注意:size_average和reduce正在被弃用，与此同时，指定这两个arg中的任何一个都将覆盖reduction参数。默认值:“mean”
+
+```python
+class torch.nn.BCELoss(weight=None, size_average=True, reduce=None, reduction='mean')
+# 计算 target 与 output 之间的二进制交叉熵。
+
+m = nn.Sigmoid()
+loss = nn.BCELoss()
+input = torch.randn(3,requires_grad=True)
+target = torch.empty(3).random_(2)
+output = loss(m(input), target)
+output.backward()
+
+# output
+(tensor([-0.8728,  0.3632, -0.0547], requires_grad=True),
+ tensor([1., 0., 0.]),
+ tensor(0.9264, grad_fn=<BinaryCrossEntropyBackward>))
+```
+
+## NLLLoss
 
 - [参考](https://blog.csdn.net/weixin_40476348/article/details/94562240)
 
@@ -413,8 +688,7 @@ tensor([-0.7463,  0.6136])
 ```
 
 
-
-# CrossEntropyLoss
+## CrossEntropyLoss
 
 - [参考](https://blog.csdn.net/Jeremy_lf/article/details/102725285)
 
@@ -434,48 +708,95 @@ input = torch.tensor([[ 1.1879,  1.0780,  0.5312],
 target = torch.tensor([0,1,2])
 loss(input,target)
 Out[30]: tensor(0.1365)
+
+# -----------------------------------------------------------------------------------
+# 如果传给target是one_hot编码格式呢？
+# 将target one_hot的编码格式转换为每个样本的类别，再传给CrossEntropyLoss
+import torch
+
+from torch import nn
+from torch.nn import functional as F
+# 编码one_hot
+def one_hot(y):
+    '''
+    y: (N)的一维tensor，值为每个样本的类别
+    out: 
+        y_onehot: 转换为one_hot 编码格式 
+    '''
+    y = y.view(-1, 1)
+    y_onehot = torch.FloatTensor(3, 5)
+    
+    # In your for loop
+    y_onehot.zero_()
+    y_onehot.scatter_(1, y, 1)
+    return y_onehot
+
+
+def cross_entropy_one_hot(input_, target):
+	# 解码 
+    _, labels = target.max(dim=1)
+    # 调用cross_entropy
+    return F.cross_entropy(input_, labels)
+
+# 调用计算loss： loss_1 = cross_entropy_one_hot(x, one_hot(y))
+
+
 ```
 
 
 
-# conv init
 
-- [参考1](https://www.zhihu.com/question/313869702) [参考2](https://blog.csdn.net/hyk_1996/article/details/82118797) [参考3](https://blog.csdn.net/dss_dssssd/article/details/83990511)
+
+## MSELoss
+
+- 计算输入x和标签y，n个元素平均平方误差（mean square error），x和y具有相同的Size
+
+$$
+l(x,y) = L = \{l_1,...,l_N\}^T, l_n = (x_n -y_n)^2
+$$
+
+- 如果reduction != ‘none’:
+
+$$
+l(x,y) = 
+\begin{cases}
+	mean(L), 						  &&&&  if \ \ reduction = 'elementwise\_mean',
+	\\
+	sum(L) ,                          &&&&  if \ \ reduction = 'sum'
+\end{cases}
+$$
+
+
 
 ```python
-def _initialize_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Conv2d):
-                # nn.init.constant_(m.weight, 0)
-                # nn.init.normal_(m.weight, 0, 0.01)
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.BatchNorm2d):
-                nn.init.constant_(m.weight, 1)
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weight, 0, 0.01)
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-                    
- # 1. 根据网络层的不同定义不同的初始化方式     
-def weight_init(m):
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_normal_(m.weight)
-        nn.init.constant_(m.bias, 0)
-    # 也可以判断是否为conv2d，使用相应的初始化方式 
-    elif isinstance(m, nn.Conv2d):
-        nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-     # 是否为批归一化层
-    elif isinstance(m, nn.BatchNorm2d):
-        nn.init.constant_(m.weight, 1)
-        nn.init.constant_(m.bias, 0)
+class torch.nn.MSELoss(size_average=None, reduce=None, reduction='elementwise_mean')
+
+#demo
+import torch
+from torch import nn
+criterion_none = nn.MSELoss( reduction='none')
+criterion_elementwise_mean = nn.MSELoss(reduction='elementwise_mean')
+criterion_sum = nn.MSELoss(reduction='sum')
+
+x = torch.randn(3, 2, requires_grad=True)
+y = torch.randn(3, 2)
+
+loss_none = criterion_none(x, y)
+
+loss_elementwise_mean = criterion_elementwise_mean(x, y)
+
+loss_sum = criterion_sum(x, y )
+
+print('reduction={}:   {}'.format('none', loss_none.detach().numpy()))
+print('reduction={}:   {}'.format('elementwise_mean', loss_elementwise_mean.item()))
+print('reduction={}:   {}'.format('sum', loss_sum.item()))
+
+#output
+reduction=none:
+[[0.02320575 0.30483633]
+[0.04768182 0.4319028 ]
+[3.11864 7.9872203 ]]
+reduction=elementwise_mean: 1.9855811595916748 # 1.9 * 6 = 11.4
+reduction=sum: 11.913487434387207
 ```
 
-
-
-# loss
-
-- [参考](https://blog.csdn.net/dss_dssssd/article/details/84036913)
