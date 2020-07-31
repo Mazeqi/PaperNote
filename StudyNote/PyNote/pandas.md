@@ -1,5 +1,94 @@
 [TOC]
 
+
+
+# DataFrame
+
+- 把DataFrame当作一个由若干Series对象构成的字典
+
+```python
+ df = pd.DataFrame({'key1':['a', 'a', 'b', 'b', 'a'],
+                    'key2':['one', 'two', 'one', 'two', 'one'],
+                    'data1':np.random.randn(5),
+                    'data2':np.random.randn(5)})
+print(df)
+
+      data1     data2 key1 key2
+0 -0.410122  0.247895    a  one
+1 -0.627470 -0.989268    a  two
+2  0.179488 -0.054570    b  one
+3 -0.299878 -1.640494    b  two
+4 -0.297191  0.954447    a  one
+
+area = pd.Series({'Guangzhou':55555, 'Shenzhen':44444, 'Dongguan':33333, 'Foshan':22222, 'Zhuhai':11111})
+pop = pd.Series({'Guangzhou':51, 'Shenzhen':42, 'Dongguan':33, 'Foshan':24, 'Zhuhai':15})
+data = pd.DataFrame({'area':area, 'pop':pop})
+data
+```
+
+
+
+# groupby
+
+- [参考](https://blog.csdn.net/u013317445/article/details/85268877)
+
+```python
+#demo1----------------------------------------------------------------------
+list(df.groupby(['key1']))#list后得到：[(group1),(group2),......]
+[('a',       data1     data2 key1 key2
+  0 -0.410122  0.247895    a  one
+  1 -0.627470 -0.989268    a  two
+  4 -0.297191  0.954447    a  one), 
+ ('b',       data1     data2 key1 key2
+  2  0.179488 -0.054570    b  one
+  3 -0.299878 -1.640494    b  two)]
+# list后得到：[(group1),(group2),…]
+# 每个数据片(group)格式: (name,group)元组
+
+for name,group in df.groupby(['key1']):
+    print(name)
+    print(group)
+'''
+a
+      data1     data2 key1 key2
+0 -0.410122  0.247895    a  one
+1 -0.627470 -0.989268    a  two
+4 -0.297191  0.954447    a  one
+b
+      data1     data2 key1 key2
+2  0.179488 -0.054570    b  one
+3 -0.299878 -1.640494    b  two
+'''
+
+
+#demo2-----------------------------------------------------------------------------
+# 对于多重键，产生的一组二元元组：（（k1,k2），数据块）,（（k1,k2），数据块）…
+# 第一个元素是由键值组成的元组
+
+for name,group in df.groupby(['key1','key2']):
+    print(name)  #name=(k1,k2)
+    print(group)
+'''
+('a', 'one')
+      data1     data2 key1 key2
+0 -0.410122  0.247895    a  one
+4 -0.297191  0.954447    a  one
+('a', 'two')
+     data1     data2 key1 key2
+1 -0.62747 -0.989268    a  two
+('b', 'one')
+      data1    data2 key1 key2
+2  0.179488 -0.05457    b  one
+('b', 'two')
+      data1     data2 key1 key2
+3 -0.299878 -1.640494    b  two
+'''
+```
+
+
+
+
+
 # read_csv
 
 - [参考](https://www.jianshu.com/p/9c12fb248ccc)
