@@ -3,7 +3,7 @@ import numpy  as np
 from torch.utils.data import Dataset,DataLoader
 from tqdm import tqdm
 from scipy.signal import resample
-
+from sklearn.model_selection import StratifiedKFold
 
 class XWDataset(Dataset):
     def __init__(self, dataPath, with_label = True, n_class = 19, **kwargs):
@@ -78,8 +78,28 @@ class XWDataset(Dataset):
             return image, label
         else:
             return label
-        
 
+    def strait_fied_folder(self， flod = 5):
+        kFold = StratifiedKFold(flod, shuffle = True)
+        self.image_batch_copy, self.label_batch_copy = self.image_batch.copy(), self.label_batch.copy()
+        self.train_val_idxs = [(train_idx, val_idx) for (train_idx, val_idx) in kFold.split(self.image_batch_copy, self.label_batch_copy)]
+    
+
+    def get_val_data(self, index):
+        """
+        :param index:
+        :return:  重新划分训练集和验证集 , 并返回验证集数据
+        """
+        train_idx, val_idx = self.train_val_idxs[index]
+        images, labels = self.image_batch_copy[train_idx], self.label_batch_copy[train_idx]
+
+        self.image_batch, self.label_batch = images, labels
+
+        self.val_img, self.val_label = self.image_batch_copy[val_idx], self.label_batch_copy[val_idx]
+
+        return self.val_img, self.val_label
+
+        
 # 批量归一化 [batch,1, 60, 8]
 def normalization(x):
 
