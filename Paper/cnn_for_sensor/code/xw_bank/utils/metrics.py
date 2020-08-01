@@ -15,10 +15,12 @@ class XWMetrics(object):
         self.scores.append(scores)
     
     def apply(self):
-        labels=np.concatenate(self.labels,axis=0)
-        scores=np.concatenate(self.scores,axis=0)
-        acc_combo=get_acc_combo(labels,scores)
-        acc=get_acc_func(labels,scores)
+        labels         = np.concatenate(self.labels,axis=0)
+        scores         = np.concatenate(self.scores,axis=0)
+        acc_combo_func = get_acc_combo()
+        acc_func       = get_acc_func()
+        acc_combo      = acc_combo_func(labels, scores)
+        acc            = acc_func(labels, scores)
         return {"acc":acc,"acc_combo":acc_combo}
 
 
@@ -49,8 +51,9 @@ def get_acc_combo():
             confusionMatrix[i, j] = combo(i,j)
     
     def acc_combo(y,y_pred):
+        #print(y_pred.size())
         y_pred = np.argmax(y_pred, axis = 1)
-        scores = confusionMatrix(y, y_pred)
+        scores = confusionMatrix[y.astype(np.int), y_pred.astype(np.int)]
         return np.mean(scores)
     
     return acc_combo
@@ -60,9 +63,9 @@ def get_acc_func():
     for i in range(19):
         confusionMatrix[i,i]=1
     def acc_func(y, y_pred):
-        y=np.argmax(y,axis=1)
+        #y=np.argmax(y,axis=1)
         y_pred = np.argmax(y_pred, axis=1)
-        scores=confusionMatrix[y,y_pred]
+        scores=confusionMatrix[y.astype(np.int),y_pred.astype(np.int)]
         return np.mean(scores)
     return acc_func
     

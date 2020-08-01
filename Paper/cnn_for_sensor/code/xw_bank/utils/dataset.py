@@ -79,7 +79,7 @@ class XWDataset(Dataset):
         else:
             return label
 
-    def strait_fied_folder(self， flod = 5):
+    def strait_fied_folder(self, flod = 5):
         kFold = StratifiedKFold(flod, shuffle = True)
         self.image_batch_copy, self.label_batch_copy = self.image_batch.copy(), self.label_batch.copy()
         self.train_val_idxs = [(train_idx, val_idx) for (train_idx, val_idx) in kFold.split(self.image_batch_copy, self.label_batch_copy)]
@@ -98,6 +98,17 @@ class XWDataset(Dataset):
         self.val_img, self.val_label = self.image_batch_copy[val_idx], self.label_batch_copy[val_idx]
 
         return self.val_img, self.val_label
+
+    @property
+    def dim(self):
+        return tuple(self.image_batch.shape[1:])
+        
+    @property
+    def data(self):
+        if self.with_label==True:
+            return self.image_batch, self.label_batch 
+        else:
+            return self.image_batch
 
         
 # 批量归一化 [batch,1, 60, 8]

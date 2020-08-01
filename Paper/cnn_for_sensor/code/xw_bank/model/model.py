@@ -48,7 +48,7 @@ class ResNet18(nn.Module):
 
         self.in_planes = 16
         self.avg_pool  = nn.AdaptiveAvgPool2d((1,1))
-        self.conv1     = conv3x3(3, 16)
+        self.conv1     = conv3x3(1, 16)
         self.bn1       = nn.BatchNorm2d(16)
 
         self.layer1    = self._make_layer(BasicBlock, out_planes = 16, num_block = 2, stride = 1)
@@ -105,7 +105,7 @@ class ResNet18(nn.Module):
 
 if __name__ == "__main__":
     net = ResNet18(19)
-    y = net((torch.randn(1, 3, 60, 8)))
+    y = net((torch.randn(1, 1, 60, 8)))
     print(y.size())
 
 
