@@ -838,3 +838,31 @@ reduction=elementwise_mean: 1.9855811595916748 # 1.9 * 6 = 11.4
 reduction=sum: 11.913487434387207
 ```
 
+
+
+## DataParallel
+
+- [参考](https://blog.csdn.net/qq_19598705/article/details/80396325)
+
+- 多GPU使用
+
+```python
+DEVICE_INFO=dict(
+    gpu_num=torch.cuda.device_count(),
+    device_ids = range(0, torch.cuda.device_count(), 1),
+    device = torch.device("cuda:0") if torch.cuda.is_available() else "cpu",
+    index_cuda=0, )
+
+device   = device_info['device']
+PrallelModel = torch.nn.DataParallel(model, device_ids = device_info['device_ids'])
+PrallelModel.to(device)
+
+```
+
+- 单gpu
+
+```python
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+```
+
