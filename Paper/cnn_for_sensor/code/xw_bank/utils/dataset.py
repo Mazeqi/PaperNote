@@ -4,15 +4,18 @@ from torch.utils.data import Dataset,DataLoader
 from tqdm import tqdm
 from scipy.signal import resample
 from sklearn.model_selection import StratifiedKFold
-
+from PIL import Image
+from utils import transforms
 class XWDataset(Dataset):
-    def __init__(self, dataPath, with_label = True, n_class = 19, **kwargs):
+    def __init__(self, dataPath, with_label = True, n_class = 19, transform = None,**kwargs):
         self.data_path = dataPath
         self.with_label = with_label
         self.n_class = n_class
 
         self.with_noise = kwargs.get('with_noise', False)
         self.noise_SNR = kwargs.get('noise_SNR', [5,15])
+
+        self.transform = transform
 
         if self.with_noise:
             print("Add noise to the data, SNR:{}".format(self.noise_SNR))
@@ -71,7 +74,12 @@ class XWDataset(Dataset):
     
     def __getitem__(self, index):
         image = self.image_batch[int(index)]
-
+        random_flip = np.random.random()
+        #因为是随机翻转，所以翻转和不反转概率应该各占50%
+        if random_flip > 0.5:
+            image = transforms.fliplr(image)
+        #    image = np.fliplr(image)
+            image = transforms.random_contrast(image)
         if self.with_label:
             label = self.label_batch[int(index)]
 
@@ -83,7 +91,7 @@ class XWDataset(Dataset):
         kFold = StratifiedKFold(flod, shuffle = True)
         self.image_batch_copy, self.label_batch_copy = self.image_batch.copy(), self.label_batch.copy()
         self.train_val_idxs = [(train_idx, val_idx) for (train_idx, val_idx) in kFold.split(self.image_batch_copy, self.label_batch_copy)]
-    
+
 
     def get_val_data(self, index):
         """
