@@ -1,3 +1,5 @@
+import sys
+sys.path.append('')
 import pandas as pd
 import numpy  as np
 from torch.utils.data import Dataset,DataLoader
@@ -6,6 +8,7 @@ from scipy.signal import resample
 from sklearn.model_selection import StratifiedKFold
 from PIL import Image
 from utils import transforms
+from utils.transforms import Img
 class XWDataset(Dataset):
     def __init__(self, dataPath, with_label = True, n_class = 19, transform = None,**kwargs):
         self.data_path = dataPath
@@ -74,12 +77,17 @@ class XWDataset(Dataset):
     
     def __getitem__(self, index):
         image = self.image_batch[int(index)]
+        #print(image.shape)
         random_flip = np.random.random()
         #因为是随机翻转，所以翻转和不反转概率应该各占50%
         if random_flip > 0.5:
-            image = transforms.fliplr(image)
-        #    image = np.fliplr(image)
-            image = transforms.random_contrast(image)
+            img = Img(image[0],image.shape[1], image.shape[2], [0, 0])
+            delta_high  = np.random.randint(-25, 25, (1,))[0]
+            delta_weigh = np.random.randint(-3, 3, (1,))[0]
+            img.Move(0,delta_high)
+            img.Process()
+            image[0,:,:] = img.dst[:,:]
+
         if self.with_label:
             label = self.label_batch[int(index)]
 

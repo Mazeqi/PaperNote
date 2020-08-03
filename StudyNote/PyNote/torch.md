@@ -877,3 +877,69 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 ```
 
+
+
+# torch.optim
+
+## optimizer.step
+
+```python
+for input, target in dataset:
+    optimizer.zero_grad()
+    output = model(input)
+    loss = loss_fn(output, target)
+    loss.backward()
+    optimizer.step()
+```
+
+
+
+## SGD
+
+```python
+class torch.optim.SGD(params, lr=<object object>, momentum=0,
+dempening=0, weight_decay=0, nesterov=False)
+
+optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+optimizer.zero_grad() # clears the gradients of all optimized **Variable** s.
+loss_fn(model(input), target).backward()
+optimizer.step() # performs a single optimization step.
+```
+
+
+
+## Adam
+
+```python
+class torch.optim.Adam(params, lr=0.001, betas=(0.9, 0.999),
+eps=1e-08, weight_decay=0)
+```
+
+
+
+## lr_scheduler.ReduceLROnPlateau
+
+- [参考](https://blog.csdn.net/weixin_40100431/article/details/84311430)
+
+- optimer指的是网络的优化器
+- mode (str) ，可选择‘min’或者‘max’，min表示当监控量停止下降的时候，学习率将减小，max表示当监控量停止上升的时候，学习率将减小。默认值为‘min’
+- factor 学习率每次降低多少，new_lr = old_lr * factor
+- patience=10，容忍网路的性能不提升的次数，高于这个次数就降低学习率
+- verbose（bool） - 如果为True，则为每次更新向stdout输出一条消息。 默认值：False
+- threshold（float） - 测量新最佳值的阈值，仅关注重大变化。 默认值：1e-4
+- cooldown： 减少lr后恢复正常操作之前要等待的时期数。 默认值：0。
+- min_lr,学习率的下限
+- eps ，适用于lr的最小衰减。 如果新旧lr之间的差异小于eps，则忽略更新。 默认值：1e-8。
+
+```python
+class torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10,
+ verbose=False, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
+
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+scheduler = ReduceLROnPlateau(optimizer, 'min',factor=0.5, patience=4, verbose=True)
+.....
+scheduler.step(train_loss)
+# scheduler.step(val_loss)
+
+```
+

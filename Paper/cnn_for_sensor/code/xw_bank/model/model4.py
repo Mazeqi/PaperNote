@@ -1,6 +1,6 @@
 from torch import nn
 import torch
-import numpy as np
+
 class Model(nn.Module):
     def __init__(self, num_classes=19):
         super(Model, self).__init__()
@@ -90,18 +90,12 @@ class Model(nn.Module):
 
 
 if __name__ == "__main__":
-    #net = Model(19)
-    #y = net((torch.randn(20, 1, 60, 8)))
-    #print(y.size())
+    net = Model(19)
+    y = net((torch.randn(20, 1, 60, 8)))
+    print(y.size())
     #m = nn.Conv2d(1, 33, kernel_size=(1, 1))
     #into = torch.randn(20, 1, 60, 8)
     #output = m(into)
     #print(output.size())
 
-    delta_high  = np.random.randint(-2, 2, (1,))[0]
-    print(delta_high)
-    '''
-    for i in range(10):
-        random_flip = np.random.random()
-        print(random_flip)
-    '''
+   
