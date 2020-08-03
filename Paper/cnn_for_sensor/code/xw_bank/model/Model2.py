@@ -31,17 +31,10 @@ class Model(nn.Module):
             nn.BatchNorm2d(base_channel * 2),
             nn.ReLU(inplace=True),
 
-             # 2
-            nn.Conv2d(base_channel*2, base_channel*2, kernel_size=(3, 3), stride=(1,1),padding=(1,1)),
-            nn.BatchNorm2d(base_channel*2),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2,2),
-
             nn.Conv2d(base_channel * 2, base_channel,  kernel_size=(1, 1)),
             nn.BatchNorm2d(base_channel),
             nn.ReLU(inplace=True),
-
-             # 2
+            # 2
             nn.Conv2d(base_channel, base_channel*2, kernel_size=(3, 3), stride=(1,1),padding=(1,1)),
             nn.BatchNorm2d(base_channel*2),
             nn.ReLU(inplace=True),
@@ -50,6 +43,7 @@ class Model(nn.Module):
             nn.Conv2d(base_channel * 2, base_channel*4,kernel_size=(3, 3), stride=(1,1),padding=(1,1)),
             nn.BatchNorm2d(base_channel*4),
             nn.ReLU(inplace=True),
+            nn.MaxPool2d(2,2),
 
             # last
             nn.AdaptiveMaxPool2d((1, 1)),

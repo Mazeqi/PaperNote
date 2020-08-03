@@ -411,6 +411,17 @@ def weight_init(m):
         nn.init.constant_(m.bias, 0)
 ```
 
+## Conv1d
+
+$$
+  L_{out} = \left\lfloor\frac{L_{in} + 2 \times \text{padding} - \text{dilation}
+                        \times (\text{kernel\_size} - 1) - 1}{\text{stride}} + 1\right\rfloor
+$$
+
+
+
+
+
 ## Conv2d
 
 - 二维卷积层, 输入的尺度是(N, Cin,H,W)，输出尺度（N,Cout,Hout,Wout）的计算方式： 
