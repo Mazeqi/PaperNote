@@ -1,5 +1,3 @@
-import sys
-sys.path.append('')
 import pandas as pd
 import numpy  as np
 from torch.utils.data import Dataset,DataLoader
@@ -77,14 +75,13 @@ class XWDataset(Dataset):
     
     def __getitem__(self, index):
         image = self.image_batch[int(index)]
-        #print(image.shape)
         random_flip = np.random.random()
         #因为是随机翻转，所以翻转和不反转概率应该各占50%
         if random_flip > 0.5:
-            img = Img(image[0],image.shape[1], image.shape[2], [0, 0])
-            delta_high  = np.random.randint(-25, 25, (1,))[0]
-            delta_weigh = np.random.randint(-3, 3, (1,))[0]
-            img.Move(0,delta_high)
+            img = Img(image[0],image.shape[1], image.shape[2])
+            delta_high  = np.random.randint(-3, 3, (1,))[0]
+            delta_weigh = np.random.randint(0, 2, (1,))[0]
+            img.Move(delta_high, 0)
             img.Process()
             image[0,:,:] = img.dst[:,:]
 
