@@ -1,51 +1,28 @@
 from torch import nn
 import torch
 
-class Block(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size = 3):
-        super(Block, self).__init__()
-        self.conv1 = nn.Sequential(
-            nn.Conv1d(in_channels = in_channels, out_channels = out_channels // 4, kernel_size = kernel_size, stride = 1 , padding = kernel_size // 2),
-            nn.BatchNorm1d(out_channels // 4),
-            nn.ReLU(inplace=True),
-
-            nn.Conv1d(out_channels // 4, out_channels // 2, kernel_size = kernel_size, stride = 1, padding = kernel_size // 2),
-            nn.BatchNorm1d(out_channels // 2),
-            nn.ReLU(inplace=True),
-
-            nn.Conv1d(out_channels // 2, out_channels, kernel_size = kernel_size, stride = 1, padding = kernel_size // 2),
-            nn.BatchNorm1d(out_channels),
-            nn.ReLU(inplace=True),
-        )
-
-        self.conv2 = nn.Sequential(
-            nn.Conv1d(in_channels, out_channels, kernel_size = 1),
-        )
-
-    def forward(self, img):
-        #img = img.reshape(img.shape[0], img.shape[1], -1)
-        out_1 = self.conv1(img)
-        out_2 = self.conv2(img)
-        #print(out_1.shape)
-        #print(out_2.shape)
-        out_total = torch.add(out_1, out_2)
-        return out_total
-
-
-
 class Model(nn.Module):
     def __init__(self, num_classes=19):
         super(Model, self).__init__()
         # input: 1, num, features_num
         base_channel=64
         self.conv1 = nn.Sequential(
-            Block(1, base_channel * 2, kernel_size = 3),
-            #nn.MaxPool1d(kernel_size = 2),
-            nn.Dropout(0.3),
-            Block(base_channel*2, base_channel*4, kernel_size = 5),
-            #nn.AdaptiveAvgPool1d(1)
+           nn.Conv1d(1, 64, 3, stride=1, padding = 1), 
+           nn.BatchNorm1d(base_channel), 
+           nn.ReLU(inplace=True),
+
+           nn.Conv1d(base_channel, base_channel * 2, 3, stride=1, padding = 1), 
+           nn.BatchNorm1d(base_channel * 2), 
+           nn.ReLU(inplace=True),
+
+           nn.Conv1d(base_channel * 2, base_channel * 4, 3, stride=1, padding = 1), 
+           nn.BatchNorm1d(base_channel * 4), 
+           nn.ReLU(inplace=True),
         )
 
+        self.conv1_1 = nn.Sequential(
+            nn.Conv1d(1, base_channel * 4, 3, stride=1, padding = 1), 
+        )
        
         self.conv2 = nn.Sequential(
             # 1
@@ -89,12 +66,9 @@ class Model(nn.Module):
         
         base_channel=64
         x = img.reshape(img.shape[0], img.shape[1], -1)
-
-        x = self.conv1(x)
-        #x_2 = self.conv1_1(x)
-
-        #x = torch.add(x_1, x_2)
-
+        x_1 = self.conv1_1(x)
+        x_2 = self.conv1(x)
+        x = torch.add(x_1, x_2)
         x = x.reshape(img.shape[0], base_channel * 4, 60, 8)
 
         x = self.conv2(x)
@@ -104,7 +78,7 @@ class Model(nn.Module):
 
     def _initialize_weights(self):
         for m in self.modules():
-            if isinstance(m, nn.Conv2d) :
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Conv2d):
                 # nn.init.constant_(m.weight, 0)
                 # nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')

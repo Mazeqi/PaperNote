@@ -25,7 +25,6 @@ class conv1d(nn.Module):
         padding_rows = max(0, (output_rows - 1) * self.stride + self.kernel_size - input_rows)
 
         self.conv =  nn.Conv1d(self.in_channels, self.out_channels, self.kernel_size,  stride = self.stride, padding = padding_rows//2)
-        conv.to('cuda')
         out = self.conv(img)
 
         return out
@@ -36,28 +35,29 @@ class Block(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size = 3):
         super(Block, self).__init__()
         self.conv1 = nn.Sequential(
-            conv1d(in_channels, out_channels, kernel_size),
+            nn.Conv1d(in_channels = in_channels, out_channels = out_channels, kernel_size = 1),
             nn.BatchNorm1d(out_channels),
             nn.ReLU(inplace=True),
 
-            conv1d(out_channels, out_channels, kernel_size),
+            nn.Conv1d(out_channels, out_channels, kernel_size, stride = 1, padding = kernel_size // 2),
             nn.BatchNorm1d(out_channels),
             nn.ReLU(inplace=True),
 
-            conv1d(out_channels, 1, kernel_size),
-            nn.BatchNorm1d(1),
+            nn.Conv1d(out_channels, out_channels, kernel_size = 1),
+            nn.BatchNorm1d(out_channels),
             nn.ReLU(inplace=True),
         )
 
         self.conv2 = nn.Sequential(
-            conv1d(in_channels, out_channels, kernel_size = 1)
+             nn.Conv1d(in_channels, out_channels, kernel_size = 1),
         )
 
     def forward(self, img):
         #img = img.reshape(img.shape[0], img.shape[1], -1)
         out_1 = self.conv1(img)
         out_2 = self.conv2(img)
-
+        #print(out_1.shape)
+        #print(out_2.shape)
         out_total = torch.add(out_1, out_2)
         return out_total
 
@@ -130,7 +130,7 @@ class Model(nn.Module):
         out_3 = self.B3(img)
         #print(out_1.size())
         out_total = torch.cat([out_1, out_2, out_3], dim = 1)
-        out_total = torch.squeeze(out_total)
+        out_total = out_total.reshape(out_total.shape[0], out_total.shape[1])
         #out_total = out_total.reshape(img.shape[0], 192)
 
         out = self.dense(out_total)

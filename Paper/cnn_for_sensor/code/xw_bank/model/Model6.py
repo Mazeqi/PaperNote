@@ -5,15 +5,15 @@ class Block(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size = 3):
         super(Block, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv1d(in_channels = in_channels, out_channels = out_channels // 4, kernel_size = kernel_size, stride = 1 , padding = kernel_size // 2),
-            nn.BatchNorm1d(out_channels // 4),
+            nn.Conv1d(in_channels = in_channels, out_channels = out_channels, kernel_size = 1),
+            nn.BatchNorm1d(out_channels),
             nn.ReLU(inplace=True),
 
-            nn.Conv1d(out_channels // 4, out_channels // 2, kernel_size = kernel_size, stride = 1, padding = kernel_size // 2),
-            nn.BatchNorm1d(out_channels // 2),
+            nn.Conv1d(out_channels, out_channels, kernel_size, stride = 1, padding = kernel_size // 2),
+            nn.BatchNorm1d(out_channels),
             nn.ReLU(inplace=True),
 
-            nn.Conv1d(out_channels // 2, out_channels, kernel_size = kernel_size, stride = 1, padding = kernel_size // 2),
+            nn.Conv1d(out_channels, out_channels, kernel_size = 1),
             nn.BatchNorm1d(out_channels),
             nn.ReLU(inplace=True),
         )
