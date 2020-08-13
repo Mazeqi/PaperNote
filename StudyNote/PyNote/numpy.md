@@ -551,3 +551,120 @@ array([[1, 2],
        [5, 6]])
 ```
 
+
+
+# np.nonzero
+
+- [参考](https://blog.csdn.net/u013698770/article/details/54632047)
+
+- 返回数组a中非零元素的索引值数组。
+
+（1）只有a中非零元素才会有索引值，那些零值元素没有索引值；
+（2）返回的索引值数组是一个2维tuple数组，该tuple数组中包含一维的array数组。其中，一维array向量的个数与a的维数是一致的。
+（3）索引值数组的每一个array均是从一个维度上来描述其索引值。比如，如果a是一个二维数组，则索引值数组有两个array，第一个array从行维度来描述索引值；第二个array从列维度来描述索引值。
+（4） 该`np.transpose(np.nonzero(x))`函数能够描述出每一个非零元素在不同维度的索引值。
+（5）通过`a[nonzero(a)]`得到所有a中的非零值
+
+```python
+#a是1维数组
+a = [0,2,3]
+b = np.nonzero(a)
+print(np.array(b).ndim)
+print(b)
+
+结果：
+2
+(array([1, 2], dtype=int64),)
+说明：索引1和索引2的位置上元素的值非零。
+
+#a是2维数组
+a = np.array([[0,0,3],[0,0,0],[0,0,9]])
+b = np.nonzero(a)
+print(np.array(b).ndim)
+print(b)
+print(np.transpose(np.nonzero(a)))
+结果：
+2
+(array([0, 2], dtype=int64), array([2, 2], dtype=int64))
+[[0 2]
+ [2 2]]
+说明：
+（1）a中有2个非零元素，因此，索引值tuple中array的长度为2。因为，只有非零元素才有索引值。
+（2）索引值数组是2 维的。实际上，无论a的维度是多少，索引值数组一定是2维的tuple，但是tuple中的一维array个数和a的维数一致。
+（3）第1个array([0, 2])是从row值上对3和9进行的描述
+。第2个array([2, 2])是从col值上对3和9的描述。这样，从行和列上两个维度上各用一个数组来描述非零索引值。
+（4）通过调用np.transpose()函数，得出3的索引值是[0 2]
+，即第0行，第2列。
+
+
+#a是3维数组
+a = np.array([[[0,1],[1,0]],[[0,1],[1,0]],[[0,0],[1,0]]])
+b = np.nonzero(a)
+print(np.array(b).ndim)
+print(b)
+结果：
+2
+(array([0, 0, 1, 1, 2], dtype=int64), array([0, 1, 0, 1, 1], dtype=int64), array([1, 0, 1, 0, 0], dtype=int64))
+说明：由于a是3维数组，因此，索引值数组有3个一维数组。
+print(a)
+[[[0 1]
+  [1 0]]
+
+ [[0 1]
+  [1 0]]
+
+ [[0 0]
+  [1 0]]]
+  a的数组结构如上所示，请将a想像为数量为3的一组小图片，每张图片的大小为2*2，下文中以num * row * col来分别表示其维度。
+  b包含3个长度为5的array，这意味着a有3维，且a共有5个非0值。
+  先说b中的第1个向量是[0, 0, 1, 1, 2]，这实际是a在num维度上描述的非零值。第0张图上有2个非零值，第1张图上有2个非零值，第2张图上有1个非零值。因此在num维度上的非零值数组为[0, 0, 1, 1, 2]。
+  b中的第2个向量是[0, 1, 0, 1, 1]，这实际是a在row维度上描述的非零值。由于row上的值只有0和1（只2行），所以只由0和1组成。
+  b中的第3个向量，聪明的读者可能已经明白，不再赘述。
+```
+
+
+
+# np.mat
+
+- `data`：array_like。输入数据。
+- `dtype`：数据类型。输出矩阵的数据类型。
+
+```python
+np.mat(data, dtype=None)
+不同于np.matrix，如果输入本身就已经是matrix或ndarray ，则np.asmatrix不会复制输入，而是仅仅创建了一个新的引用。
+
+>>> x = np.array([[1, 2], [3, 4]])
+>>> m = np.asmatrix(x)
+>>> x[0,0] = 5
+>>> m
+matrix([[5, 2],
+        [3, 4]])
+
+
+```
+
+
+
+# np.unique
+
+- [参考](https://blog.csdn.net/qq_33591712/article/details/85095075)
+
+```python
+data = np.array([[1,8,3,3,4],
+                 [1,8,9,9,4],
+                 [1,8,3,3,4]])
+ #删除整个数组的重复元素      
+uniques = np.unique(data)
+print( uniques)
+array([1, 3, 4, 8, 9])
+ #删除重复行      
+uniques = np.unique(data，axis=0)
+print( uniques)
+array([[1,8,3,3,4],
+	 [1,8,9,9,4]])
+ #删除重复列
+uniques = np.unique(data，axis=1)
+
+
+```
+
