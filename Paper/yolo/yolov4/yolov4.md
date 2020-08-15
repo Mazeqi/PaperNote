@@ -6,6 +6,30 @@
 
 ![structure](./img/yolov4-structure.png)
 
+# Network
+
+- [参考](https://blog.csdn.net/weixin_44791964/article/details/106533581)
+
+## (416,416,3)
+
+![](./img/yolov4-net-416.png)
+
+## (608，608，3）
+
+![](./img/yolov4-net-608.png)
+
+
+
+## Mish
+
+$$
+Mish = x \times \tanh(\ln(1+e^x))
+$$
+
+
+
+![](./img/mish-activate.png)
+
 # Innovation
 
 ## Mosaic

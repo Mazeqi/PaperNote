@@ -6,6 +6,7 @@
 
 ```python
 #生成几个相同的数组并合成一个shape = [20,5]
+numpy.arange(start, stop, step, dtype)
 [np.arange(5)] * 4 * 5
 ```
 
@@ -665,6 +666,41 @@ array([[1,8,3,3,4],
  #删除重复列
 uniques = np.unique(data，axis=1)
 
+
+```
+
+
+
+# np.dot
+
+- [参考](https://blog.csdn.net/weixin_43584807/article/details/103105709)
+
+1. Numpy中dot()函数主要功能有两个：向量点积和矩阵乘法
+2. x.dot(y) 等价于 np.dot(x,y) ———x是m*n 矩阵 ，y是n*m矩阵，则x.dot(y) 得到m*m矩阵。
+3. 如果处理的是一维数组，则得到的是两数组的內积。
+4. 如果处理的是二维数组（矩阵），则得到的是矩阵积
+   1. np.dot(x, y), 当x为二维矩阵，y为一维向量，这时y会转换一维矩阵进行计算
+   2. np.dot(x, y)中，x、y都是二维矩阵，进行矩阵积计算
+
+```python
+import numpy as np
+x=np.arange(0,6).reshape(2,3)
+y=np.random.randint(0,10,size=(3,2))
+print (x)
+print (y)
+print ("x.shape:"+str(x.shape))
+print ("y.shape"+str(y.shape))
+print (np.dot(x,y))
+
+[[0 1 2]
+ [3 4 5]]
+[[7 5]
+ [0 7]
+ [6 2]]
+x.shape:(2, 3)
+y.shape(3, 2)
+[[12 11]
+ [51 53]]
 
 ```
 
