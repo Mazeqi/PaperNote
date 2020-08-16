@@ -9,6 +9,43 @@
 
 
 
+# tensor.permute
+
+- 将tensor的维度换位。
+
+```python
+torch.Tensor.permute (Python method, in torch.Tensor)
+
+>>> x = torch.randn(2, 3, 5) 
+>>> x.size() 
+torch.Size([2, 3, 5]) 
+>>> x.permute(2, 0, 1).size() 
+torch.Size([5, 2, 3])
+```
+
+
+
+# tensor.contiguous
+
+- [参考](https://zhuanlan.zhihu.com/p/64376950)
+
+```python
+# 返回一个内存连续的有相同数据的tensor，如果原tensor内存连续，则返回原tensor；
+# contiguous一般与transpose，permute，view搭配使用：使用transpose或permute进行维度变换后，调用contiguous，然后方可使用view对维度进行变形（如：tensor_var.contiguous().view() ），示例如下：
+
+x = torch.Tensor(2,3)
+y = x.permute(1,0)         # permute：二维tensor的维度变换，此处功能相当于转置transpose
+y.view(-1)                 # 报错，view使用前需调用contiguous()函数
+y = x.permute(1,0).contiguous()
+y.view(-1)                 # OK
+
+#1 transpose、permute等维度变换操作后，tensor在内存中不再是连续存储的，而view操作要求tensor的内存连续存储，所以需要contiguous来返回一个contiguous copy；
+
+#2 维度变换后的变量是之前变量的浅拷贝，指向同一区域，即view操作会连带原来的变量一同变形，这是不合法的，所以也会报错；---- 这个解释有部分道理，也即contiguous返回了tensor的深拷贝contiguous copy数据；
+```
+
+
+
 # variable
 
 - [参考](https://blog.csdn.net/u012370185/article/details/94391428)
@@ -44,6 +81,28 @@ torch.save(model.state_dict(), PATH)
 model = MyModel(*args, **kwargs)
 model.load_state_dict(torch.load(PATH))
 model.eval()
+```
+
+
+
+# torch.linspace
+
+```python
+torch.linspace(start, end, steps=100, out=None, dtype=None, layout=torch.strided, device=None, requires_grad=False) → Tensor
+'''
+start：开始值
+end：结束值
+steps：分割的点数，默认是100
+dtype：返回值（张量）的数据类型
+'''
+
+import torch
+print(torch.linspace(3,10,5))
+结果：tensor([ 3.0000, 4.7500, 6.5000, 8.2500, 10.0000])
+
+type=torch.float
+print(torch.linspace(-10,10,steps=6,dtype=type))
+结果：tensor([-10., -6., -2., 2., 6., 10.])
 ```
 
 
@@ -633,6 +692,22 @@ class torch.nn.BatchNorm2d(num_features, eps=1e-05, momentum=0.1, affine=True)
 
 ## MaxPool2d
 
+$$
+\begin{aligned}
+            out(N_i, C_j, h, w) ={} & \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                    & \text{input}(N_i, C_j, \text{stride[0]} \times h + m,
+                                                   \text{stride[1]} \times w + n)
+\end{aligned}
+\\
+ H_{out} = \left\lfloor\frac{H_{in} + 2 * \text{padding[0]} - \text{dilation[0]}
+                    \times (\text{kernel_size[0]} - 1) - 1}{\text{stride[0]}} + 1\right\rfloor
+\\
+ W_{out} = \left\lfloor\frac{W_{in} + 2 * \text{padding[1]} - \text{dilation[1]}
+                    \times (\text{kernel_size[1]} - 1) - 1}{\text{stride[1]}} + 1\right\rfloor
+$$
+
+
+
 ```python
 class torch.nn.MaxPool2d(kernel_size, stride=None, padding=0, dilation=1, return_indices=False, ceil_mode=False)
 '''
@@ -995,6 +1070,46 @@ PrallelModel.to(device)
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 ```
+
+
+
+## Upsample
+
+- [参考](https://www.cnblogs.com/wanghui-garcia/p/11399053.html)
+
+$$
+D_{out} = \left\lfloor D_{in} \times \text{scale_factor} \right\rfloor
+\\
+ H_{out} = \left\lfloor H_{in} \times \text{scale_factor} \right\rfloor
+ \\
+         W_{out} = \left\lfloor W_{in} \times \text{scale_factor} \right\rfloor
+$$
+
+
+
+-  size (int or Tuple[int] or Tuple[int, int] or Tuple[int, int, int], optional)
+- scale_factor (float or Tuple[float] or Tuple[float, float] or Tuple[float, float, float], optional)
+- mode (str, optional): the upsampling algorithm: one of ``'nearest'``, ``'linear'``, ``'bilinear'``, ``'bicubic'`` and ``'trilinear'``. Default: ``'nearest'``
+- align_corners (bool, optional): if ``True``, the corner pixels of the input and output tensors are aligned, and thus preserving the values at those pixels. This only has effect when :attr:`mode` is  ``'linear'``, ``'bilinear'``, or ``'trilinear'``. Default: ``False``
+
+```python
+torch.nn.Upsample(size=None, scale_factor=None, mode='nearest', align_corners=None)
+
+
+>>> input = torch.arange(1, 5, dtype=torch.float32).view(1, 1, 2, 2)
+>>> input
+tensor([[[[ 1.,  2.],
+          [ 3.,  4.]]]])
+
+>>> m = nn.Upsample(scale_factor=2, mode='nearest')
+>>> m(input)
+tensor([[[[ 1.,  1.,  2.,  2.],
+          [ 1.,  1.,  2.,  2.],
+          [ 3.,  3.,  4.,  4.],
+          [ 3.,  3.,  4.,  4.]]]])
+```
+
+
 
 
 
