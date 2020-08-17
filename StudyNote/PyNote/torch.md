@@ -1,5 +1,13 @@
 [TOC]
 
+# image
+
+```python
+batch * c * h * w
+```
+
+
+
 # device
 
 ```python
@@ -312,6 +320,75 @@ class TensorDataset(Dataset):
 
 ## DataLoader   from torch.utils.data DataLoader
 
+- dataloader 可以有两种输入，一种是一个dataset，另外一种是直接输入[imaegs, labels]的一个list
+
+```python
+
+# 第一种处理
+class _IterableDatasetFetcher(_BaseDatasetFetcher):
+    def __init__(self, dataset, auto_collation, collate_fn, drop_last):
+        super(_IterableDatasetFetcher, self).__init__(dataset, auto_collation, collate_fn, drop_last)
+        self.dataset_iter = iter(dataset)
+
+    def fetch(self, possibly_batched_index):
+        if self.auto_collation:
+            data = []
+            for _ in possibly_batched_index:
+                try:
+                    data.append(next(self.dataset_iter))
+                except StopIteration:
+                    break
+            if len(data) == 0 or (self.drop_last and len(data) < len(possibly_batched_index)):
+                raise StopIteration
+        else:
+            data = next(self.dataset_iter)
+        return self.collate_fn(data)
+
+# 第二种输入的处理
+class _MapDatasetFetcher(_BaseDatasetFetcher):
+    def __init__(self, dataset, auto_collation, collate_fn, drop_last):
+        super(_MapDatasetFetcher, self).__init__(dataset, auto_collation, collate_fn, drop_last)
+
+    def fetch(self, possibly_batched_index):
+        if self.auto_collation:
+            data = [self.dataset[idx] for idx in possibly_batched_index]
+        else:
+            data = self.dataset[possibly_batched_index]
+        return self.collate_fn(data)
+
+```
+
+
+
+- dataloader本质是一个迭代器
+
+-  容器是用来储存元素的一种数据结构，容器将所有数据保存在内存中，Python中典型的容器有：list，set，dict，str等等。
+
+- for … in… 这个语句其实做了两件事。第一件事是获得一个可迭代器，即调用了__iter__()函数。
+  第二件事是循环的过程，循环调用__next__()函数。
+
+  对于test这个类来说，它定义了__iter__和__next__函数，所以是一个可迭代的类，也可以说是一个可迭代的对象（Python中一切皆对象）。
+
+```python
+class test():
+    def __init__(self,data=1):
+        self.data = data
+
+    def __iter__(self):
+        return self
+    def __next__(self):
+        if self.data > 5:
+            raise StopIteration
+        else:
+            self.data+=1
+            return self.data
+
+for item in test(3):
+    print(item)
+```
+
+
+
 - dataloaer:部分流程上有用的参数及其代码。
 
 - 查看流程
@@ -342,7 +419,24 @@ class DataLoader(object):
  """
 ```
 
+- collate_fn
 
+  - [参考](https://www.jianshu.com/p/bb90bff9f6e5)
+
+    ```python
+    # DataLoader中collate_fn使用
+    def yolo_dataset_collate(batch):
+        images = []
+        bboxes = []
+        for img, box in batch:
+            images.append(img)
+            bboxes.append(box)
+        images = np.array(images)
+        bboxes = np.array(bboxes)
+        return images, bboxes
+    ```
+
+    
 
 # torch.flip
 

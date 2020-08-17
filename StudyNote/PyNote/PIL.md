@@ -21,6 +21,14 @@ image.show() # 显示图像
 
 
 
+# shape
+
+```python
+img.shape = h,w,channel
+```
+
+
+
 # rotate
 
 ```python

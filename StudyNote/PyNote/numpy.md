@@ -704,3 +704,71 @@ y.shape(3, 2)
 
 ```
 
+# np.logical_and/or/not
+
+```python
+# and
+np.logical_and(x1, x2, *args, **kwargs)
+>>> np.logical_and(True, False)
+False
+>>> np.logical_and([True, False], [False, False])
+array([False, False], dtype=bool)
+
+>>> x = np.arange(5)
+>>> np.logical_and(x>1, x<4)
+array([False, False,  True,  True, False], dtype=bool)
+
+# or
+np.logical_or(x1, x2, *args, **kwargs)
+>>> np.logical_or(True, False)
+True
+>>> np.logical_or([True, False], [False, False])
+array([ True, False], dtype=bool)
+
+>>> x = np.arange(5)
+>>> np.logical_or(x < 1, x > 3)
+array([ True, False, False, False,  True], dtype=bool)
+
+# not
+logical_not(x, *args, **kwargs)
+>>> np.logical_not(3)
+False
+>>> np.logical_not([True, False, 0, 1])
+array([False,  True,  True, False], dtype=bool)
+
+>>> x = np.arange(5)
+>>> np.logical_not(x<3)
+array([False, False, False,  True,  True], dtype=bool)
+```
+
+# np.transpose
+
+- 变换纬度，通常把 h*w * c 的图片转化为 c h w
+
+```python
+def transpose(a, axes=None):
+Args:
+    a : array_like
+        Input array.
+    axes : tuple or list of ints, optional
+        If specified, it must be a tuple or list which contains a permutation of
+        [0,1,..,N-1] where N is the number of axes of a.  The i'th axis of the
+        returned array will correspond to the axis numbered ``axes[i]`` of the
+        input.  If not specified, defaults to ``range(a.ndim)[::-1]``, which
+        reverses the order of the axes.
+
+>>> x = np.arange(4).reshape((2,2))
+>>> x
+array([[0, 1],
+       [2, 3]])
+
+>>> np.transpose(x)
+array([[0, 2],
+       [1, 3]])
+
+>>> x = np.ones((1, 2, 3))
+>>> np.transpose(x, (1, 0, 2)).shape
+(2, 1, 3)
+
+```
+
