@@ -6,6 +6,62 @@
 
 
 
+# cv2_PIL
+
+OpenCV转换成PIL.Image格式：
+
+```python
+import cv2  
+from PIL import Image  
+import numpy  
+  
+img = cv2.imread("plane.jpg")  
+cv2.imshow("OpenCV",img)  
+image = Image.fromarray(cv2.cvtColor(img,cv2.COLOR_BGR2RGB))  
+image.show()  
+cv2.waitKey()  
+```
+
+PIL.Image转换成OpenCV格式：
+
+```python
+import cv2  
+from PIL import Image  
+import numpy  
+  
+image = Image.open("plane.jpg")  
+image.show()  
+img = cv2.cvtColor(numpy.asarray(image),cv2.COLOR_RGB2BGR)  
+cv2.imshow("OpenCV",img)  
+cv2.waitKey()  
+
+
+hue=.1
+sat=1.5
+val=1.5
+
+
+```
+
+
+
+# fromarray
+
+- image的格式是uint8
+
+```python
+from PIL import Image  
+import numpy as np
+im = Image.open("/home/lw/a.jpg")
+im.show() 
+img = np.array(im)      # image类 转 numpy
+img = img[:,:,0]        #第1通道
+img = Image.fromarray(img.astype('uint8')).convert('RGB')
+im.show() 
+```
+
+
+
 ## cv2.imread
 
 ```python

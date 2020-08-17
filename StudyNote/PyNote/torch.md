@@ -73,7 +73,29 @@ print(x)#其实查询的是x.data,是个tensor
 
 # save load
 
+- [参考](https://blog.csdn.net/qq_42698422/article/details/100547225)
+
 ```python
+load(f, map_location=None, pickle_module=pickle, **pickle_load_args)
+save(obj, f, pickle_module=pickle, pickle_protocol=DEFAULT_PROTOCOL, _use_new_zipfile_serialization=False)
+
+>>> torch.load('tensors.pt')
+# Load all tensors onto the CPU
+>>> torch.load('tensors.pt', map_location=torch.device('cpu'))
+# Load all tensors onto the CPU, using a function
+>>> torch.load('tensors.pt', map_location=lambda storage, loc: storage)
+# Load all tensors onto GPU 1
+>>> torch.load('tensors.pt', map_location=lambda storage, loc: storage.cuda(1))
+# Map tensors from GPU 1 to GPU 0
+>>> torch.load('tensors.pt', map_location={'cuda:1':'cuda:0'})
+# Load tensor from io.BytesIO object
+>>> with open('tensor.pt', 'rb') as f:
+    buffer = io.BytesIO(f.read())
+>>> torch.load(buffer)
+# Load a module with 'ascii' encoding for unpickling
+>>> torch.load('module.pt', encoding='ascii')
+
+
 # save
 torch.save(model.state_dict(), PATH)
 
@@ -83,7 +105,21 @@ model.load_state_dict(torch.load(PATH))
 model.eval()
 ```
 
+- yolov4
 
+  ```python
+  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  # 模型的参数字典
+  model_dict = model.state_dict()
+  pretrained_dict = torch.load(model_path, map_location=device)
+  # 读取保存模型为字典
+  pretrained_dict = {k: v for k, v in pretrained_dict.items() if np.shape(model_dict[k]) ==  np.shape(v)}
+  # 更新模型字典
+  model_dict.update(pretrained_dict)
+  model.load_state_dict(model_dict)
+  ```
+
+  
 
 # torch.linspace
 
@@ -1149,7 +1185,9 @@ class torch.optim.Adam(params, lr=0.001, betas=(0.9, 0.999),
 eps=1e-08, weight_decay=0)
 ```
 
+# lr_scheduler
 
+- [参考](https://www.cnblogs.com/devilmaycry812839668/p/10629578.html)
 
 ## lr_scheduler.ReduceLROnPlateau
 
@@ -1169,11 +1207,125 @@ eps=1e-08, weight_decay=0)
 class torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10,
  verbose=False, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
 
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
-scheduler = ReduceLROnPlateau(optimizer, 'min',factor=0.5, patience=4, verbose=True)
-.....
-scheduler.step(train_loss)
-# scheduler.step(val_loss)
+>>> optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+>>> scheduler = ReduceLROnPlateau(optimizer, 'min')
+>>> for epoch in range(10):
+    >>>     train(...)
+    >>>     val_loss = validate(...)
+    >>>     # Note that step should be called after validate()
+    >>>     scheduler.step(val_loss)
 
+```
+
+## lr_scheduler.CosineAnnealingLR
+
+$$
+\begin{cases}
+            \eta_t & =& \eta_{min} + \frac{1}{2}(\eta_{max} - \eta_{min})\left(1
+            + \cos\left(\frac{T_{cur}}{T_{max}}\pi\right)\right),
+             T_{cur} \neq (2k+1)T_{max}; \\
+            \eta_{t+1} & =& \eta_{t} + \frac{1}{2}(\eta_{max} - \eta_{min})
+            \left(1 - \cos\left(\frac{1}{T_{max}}\pi\right)\right),
+             T_{cur} = (2k+1)T_{max}.
+\end{cases}
+$$
+
+```python
+# 以余弦函数为周期，并在每个周期最大值时重新设置学习率。
+# 以初始学习率为最大学习率，以2∗Tmax为周期，在一个周期内先下降，后上升。
+# T_max(int)- 一次学习率周期的迭代次数，即 T_max 个 epoch 之后重新设置学习率。
+# eta_min(float)- 最小学习率，即在一个周期中，学习率最小会下降到 eta_min，默认值为 0。
+torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max, eta_min=0, last_epoch=-1)
+```
+
+
+
+## lr_scheduler.StepLR
+
+- 等间隔调整学习率，调整倍数为 gamma 倍，调整间隔为 step_size。间隔单位是step。需要注意的是， step 通常是指 epoch，不要弄成 iteration 了。
+
+```python
+ optimizer (Optimizer): Wrapped optimizer.
+ step_size (int): Period of learning rate decay.
+ gamma (float): Multiplicative factor of learning rate decay.Default: 0.1.
+ last_epoch (int): The index of last epoch. Default: -1.
+        
+>>> # Assuming optimizer uses lr = 0.05 for all groups
+>>> # lr = 0.05     if epoch < 30
+>>> # lr = 0.005    if 30 <= epoch < 60
+>>> # lr = 0.0005   if 60 <= epoch < 90
+>>> # ...
+>>> scheduler = StepLR(optimizer, step_size=30, gamma=0.1)
+>>> for epoch in range(100):
+    >>>     train(...)
+    >>>     validate(...)
+    >>>     scheduler.step()
+    
+    
+```
+
+
+
+# earlyStopping
+
+- [参考](https://blog.csdn.net/weixin_40446557/article/details/103387629)
+
+- **早停法**是一种被广泛使用的方法，在很多案例上都比正则化的方法要好。是在训练中计算模型在验证集上的表现，当模型在验证集上的表现开始下降的时候，停止训练，这样就能避免继续训练导致过拟合的问题。其主要步骤如下：
+  1. 将原始的训练数据集划分成训练集和验证集
+  2. 只在训练集上进行训练，并每隔一个周期计算模型在验证集上的误差
+  3. 当模型在验证集上（权重的更新低于某个阈值；预测的错误率低于某个阈值；达到一定的迭代次数），则停止训练
+  4. 使用上一次迭代结果中的参数作为模型的最终参数
+
+```python
+import numpy as np
+import torch
+class EarlyStopping:
+    """Early stops the training if validation loss doesn't improve after a given patience."""
+    def __init__(self, patience=7, verbose=False, delta=0, path='checkpoint.pt', trace_func=print):
+        """
+        Args:
+            patience (int): How long to wait after last time validation loss improved.
+                            Default: 7
+            verbose (bool): If True, prints a message for each validation loss improvement. 
+                            Default: False
+            delta (float): Minimum change in the monitored quantity to qualify as an improvement.
+                            Default: 0
+            path (str): Path for the checkpoint to be saved to.
+                            Default: 'checkpoint.pt'
+            trace_func (function): trace print function.
+                            Default: print            
+        """
+        self.patience = patience
+        self.verbose = verbose
+        self.counter = 0
+        self.best_score = None
+        self.early_stop = False
+        self.val_loss_min = np.Inf
+        self.delta = delta
+        self.path = path
+        self.trace_func = trace_func
+    def __call__(self, val_loss, model):
+
+        score = -val_loss
+
+        if self.best_score is None:
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
+        elif score < self.best_score + self.delta:
+            self.counter += 1
+            self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
+            if self.counter >= self.patience:
+                self.early_stop = True
+        else:
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
+            self.counter = 0
+
+    def save_checkpoint(self, val_loss, model):
+        '''Saves model when validation loss decrease.'''
+        if self.verbose:
+            self.trace_func(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
+        torch.save(model.state_dict(), self.path)
+        self.val_loss_min = val_loss
 ```
 
