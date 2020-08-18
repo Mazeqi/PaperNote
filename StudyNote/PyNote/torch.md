@@ -282,6 +282,63 @@ b = a.view_as(torch.Tensor(4, 2))
 
 
 
+# torch.as_tensor
+
+```python
+torch.as_tensor(data, dtype=None,device=None)->Tensor : 为data生成tensor。
+# 如果data已经是tensor，且dtype和device与参数相同，则生成的tensor会和data共享内存。如果data是ndarray,且dtype对应，devices为cpu，则同样共享内存。其他情况则不共享内存。
+
+
+import torch
+import numpy
+a = numpy.array([1, 2, 3])
+t = torch.as_tensor(a)
+```
+
+
+
+# torch.randperm
+
+```python
+# randperm功能是随机打乱一个数字序列。
+#语法格式：
+#y = torch.randperm(n)
+#y是把1到n这些数随机打乱得到的一个数字序列。
+
+th> torch.randperm(5)
+ 3
+ 1
+ 5
+ 4
+ 2
+[torch.DoubleTensor of size 5]
+
+                                                                      [0.0003s]
+th> torch.randperm(7)
+ 7
+ 3
+ 2
+ 5
+ 6
+ 4
+ 1
+[torch.DoubleTensor of size 7]
+```
+
+
+
+# index_select
+
+```python
+index_select(self, dim: _int, index: Tensor) -> Tensor
+anchor_w = FloatTensor(scaled_anchors).index_select(1, LongTensor([0]))
+
+```
+
+
+
+
+
 # Dataset -> dataloader
 
 ## dataset  from torch.utils.data import Dataset
@@ -319,6 +376,8 @@ class TensorDataset(Dataset):
 
 
 ## DataLoader   from torch.utils.data DataLoader
+
+- [参考1](https://blog.csdn.net/tsq292978891/article/details/80454568)
 
 - dataloader 可以有两种输入，一种是一个dataset，另外一种是直接输入[imaegs, labels]的一个list
 
@@ -360,7 +419,7 @@ class _MapDatasetFetcher(_BaseDatasetFetcher):
 
 
 
-- dataloader本质是一个迭代器
+- dataloader本质是一个迭代器 [参考](https://www.jianshu.com/p/1b0686bc166d)
 
 -  容器是用来储存元素的一种数据结构，容器将所有数据保存在内存中，Python中典型的容器有：list，set，dict，str等等。
 
@@ -401,21 +460,24 @@ for item in test(3):
 class DataLoader(object):
     r"""
     Arguments:
-       # dataset (Dataset): 一般从上面的tensordataset load进来
-       # batch_size (int, optional): 每一次训练有多少个样本，默认是1 
-       # shuffle (bool, optional): 是否打乱，默认False
-       # sampler (Sampler, optional): 
-       # 当sample不为none的时候，是不可以使用shuffle的，
-         如果batch_sampler没有定义的话且batch_size有定义， 
+       #  dataset (Dataset): 一般从上面的tensordataset load进来
+       #  batch_size (int, optional): 每一次训练有多少个样本，默认是1 
+       #  shuffle (bool, optional): 是否打乱，默认False
+       #  sampler (Sampler, optional): 
+       #  当sample不为none的时候，是不可以使用shuffle的，
+          如果batch_sampler没有定义的话且batch_size有定义， 
           会根据sampler, batch_size, drop_last生成一个batch_sampler，
-       # 当sample为none的时候，函数会根据shuffle是否为true生成一个
-       乱序或者非乱序的sampler，后面的代码中观察出，sampler是数据的索引数组。
-            
-      	  batch_sampler (Sampler, optional): 
-          # batch_sampler就是返回batch个sampler中的值，这些值是dataset的索引。
+       #  当sample为none的时候，函数会根据shuffle是否为true生成一个
+          乱序或者非乱序的sampler，后面的代码中观察出，sampler是数据的索引数组。
+  
+          batch_sampler (Sampler, optional): 
+        # batch_sampler就是返回batch个sampler中的值，这些值是dataset的索引。
           所用当shuffle为true由于我们的限制，是不能直接传sampler进来的。因为当
           shuffle为true的时候，需要生成一个乱序的sampler。
-      	  #num_workers (int, optional): 多线程，但是windows系统只能用0
+      	# num_workers (int, optional): 多线程
+      	# drop_last:True:如果最后一个batch不满batch_size，则丢弃
+      	# pin_menery:pin_memory就是锁页内存，创建DataLoader时，设置pin_memory=True，则意味着			生成的Tensor数据最开始是属于内存中的锁页内存，这样将内存的Tensor转义到GPU的显存就会更快一		  些。
+      	  
  """
 ```
 

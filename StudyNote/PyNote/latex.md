@@ -2,7 +2,7 @@
 
 # latex
 
-
+- [常用符号](https://www.jianshu.com/p/d6789115018e)
 
 ## 分数
 
@@ -91,6 +91,36 @@ $$
 
 $$
 \lVert \hat{y} \rVert
+$$
+
+
+
+## 实数集 交 并 补 全集
+
+$$
+\mathbb{R}
+\\
+\mathbb{Z}
+\\
+\mathbb{N}
+\\
+\subset 子集
+\\
+\subseteq 真子集
+\\
+\supset  包含
+\\
+\in      属于      
+\\
+\cap    交     
+\\
+\cup    并     
+\\
+\mid      或  
+\\
+\notin    不属于   
+
+
 $$
 
 
