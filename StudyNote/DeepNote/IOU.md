@@ -19,6 +19,9 @@ _____|___|    |
      |        |
      _________
         
+
+框的左上角为（xmin,ymin）右下角为（xmax,ymax）
+坐标从上往下，从左往右递增
 '''
     0,0 ------> x (width)
      |
@@ -30,8 +33,6 @@ _____|___|    |
   (height)            *
                 (Right,Bottom)
 '''
-框的左上角为（xmin,ymin）右下角为（xmax,ymax）
-坐标从上往下，从左往右递增
 ```
 
 
@@ -90,6 +91,7 @@ _____|___|    |
 
         return tf.clip_by_value(1.0 * inter_square / union_square, 0.0, 1.0)
 
+
 ```
 
 - demo2
@@ -126,6 +128,7 @@ _____|___|    |
       return box_intersection(a, b)/box_union(a, b);
   }
   
+  
   ```
 
 
@@ -160,9 +163,7 @@ _____|___|    |
       union = area_a + area_b - inter
       return inter / union  # [A,B]
   ```
-```
-  
-  
+
 
 # IoU loss
 
@@ -177,7 +178,6 @@ $$
 - GIou loss在IoU loss的基础上增加一个惩罚项，C为包围预测框$B$ 和$B^{gt}$ 的最小区域大小，当bbox的距离越大时，惩罚项将越大
 
 $$
-
 GIOU = IoU -\frac{|C - B \cup B^{gt}|}{| C |}
 \\
 \mathcal{L_{GIoU}} = 1 - IoU + \frac{|C - B \cup B^{gt}|}{| C |}
@@ -268,7 +268,6 @@ $$
 
 论文考虑到bbox回归三要素中的长宽比还没被考虑到计算中，因此，进一步在DIoU的基础上提出了CIoU。其惩罚项如公式8，其中$\alpha$是权重函数，而$v$用来度量长宽比的相似性
 $$
-
 CIOU = IOU-\frac{\rho^{2}(b, b^{gt})}{c^2}-\alpha v, 
 \\
 \mathcal{L}_{CIOU} =1 - IOU+\frac{\rho^{2}(b, b^{gt})}{c^2}+\alpha v, \tag{10}
@@ -285,7 +284,8 @@ $$
 $$
 最后，CIoU loss的梯度类似于DIoU loss，但还要考虑$v$的梯度,在长宽为$[0,1]$的情况下，$w^2+h^2$的值通常会很小，会导致梯度爆炸，因此在实现时将$\frac{1}{w^2+h^2}$替换为1
 
-​```python
+
+```python
 def box_ciou(b1, b2):
     """
     输入为：
@@ -309,7 +309,7 @@ def box_ciou(b1, b2):
     b2_wh_half = b2_wh/2.
     b2_mins = b2_xy - b2_wh_half
     b2_maxes = b2_xy + b2_wh_half
-
+    
     # 求真实框和预测框所有的iou
     intersect_mins = torch.max(b1_mins, b2_mins)
     intersect_maxes = torch.min(b1_maxes, b2_maxes)
@@ -319,7 +319,7 @@ def box_ciou(b1, b2):
     b2_area = b2_wh[..., 0] * b2_wh[..., 1]
     union_area = b1_area + b2_area - intersect_area
     iou = intersect_area / torch.clamp(union_area,min = 1e-6)
-
+    
     # 计算中心的差距
     center_distance = torch.sum(torch.pow((b1_xy - b2_xy), 2), axis=-1)
     
@@ -338,7 +338,6 @@ def box_ciou(b1, b2):
 ```
 
 
-
 # nms using diou
 
 在原始的NMS中，IoU指标用于抑制多余的检测框，但由于仅考虑了重叠区域，经常会造成错误的抑制，特别是在bbox包含的情况下。因此，可以使用DIoU作为NMS的标准，不仅考虑重叠区域，还考虑了中心点距离
@@ -352,3 +351,6 @@ s_i=
 $$
 其中$s_i$是分类置信度，$\varepsilon$为nms阈值， $M$为最高置信度的框。DIOU-NMS倾向于中心点距离较远的box存在不同的对象，而且仅需改几行代码，DIoU-NMS就能够很简单地集成到目标检测算法中
 
+```
+
+```
