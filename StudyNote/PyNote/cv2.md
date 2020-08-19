@@ -62,7 +62,7 @@ im.show()
 
 
 
-## cv2.imread
+# cv2.imread
 
 ```python
 cv2.imread(filepath,flags)
@@ -76,7 +76,7 @@ img = cv2.imread('1.jpg',cv2.IMREAD_GRAYSCALE)
 
 
 
-## cv2.imshow cv2.waitkey cv2.destroyAllwindows
+# cv2.imshow cv2.waitkey cv2.destroyAllwindows
 
 ```python
 # 使用函数cv2.imshow(wname,img)显示图像，第一个参数是显示图像的窗口的名字，第二个参数是要显示的图像（imread读入的图像），窗口大小自动调整为图片大小
@@ -92,7 +92,7 @@ cv2.destroyAllWindows()
 
 
 
-## cv2.imwrite
+# cv2.imwrite
 
 ```python
 # 使用函数cv2.imwrite(file，img，num)保存一个图像。第一个参数是要保存的文件名，第二个参数是要保存的图像。可选的第三个参数，它针对特定的格式：对于JPEG，其表示的是图像的质量，用0 - 100的整数表示，默认95;对于png ,第三个参数表示的是压缩级别。默认为3.
@@ -106,7 +106,7 @@ cv2.imwrite('1.png',img, [int(cv2.IMWRITE_PNG_COMPRESSION), 9])
 
 
 
-## cv2.flip
+# cv2.flip
 
 ```python
 # 使用函数cv2.flip(img,flipcode)翻转图像，flipcode控制翻转效果。
@@ -119,7 +119,7 @@ imgflip = cv2.flip(img,1)
 
 
 
-## img.copy
+# img.copy
 
 ```python
 imgcopy = img.copy()
@@ -127,7 +127,7 @@ imgcopy = img.copy()
 
 
 
-## cv2.cvtColor
+# cv2.cvtColor
 
 ```python
 #彩色图像转为灰度图像
@@ -139,7 +139,7 @@ img3 = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
 
 
 
-## cv2.rectangle
+# cv2.rectangle
 
 - [参考](https://blog.csdn.net/sinat_41104353/article/details/85171185)
 
@@ -150,7 +150,7 @@ cv2.rectangle(img, (bbox.left, bbox.top), (bbox.right, bbox.bottom), (0,0,255), 
 
 
 
-## demo1  ord('s') to exit
+# demo1  ord('s') to exit
 
 ```python
 # 读入一副图像，按’s’键保存后退出，其它任意键则直接退出不保存
@@ -167,7 +167,7 @@ else:
 
 
 
-## demo2  putText to img
+# demo2  putText to img
 
 ```python
 import cv2
@@ -185,7 +185,7 @@ cv2.destroyWindow(wname)    # 销毁指定窗口
 
 
 
-## demo3 yolov2  video draw_rectangle
+# demo3 yolov2  video draw_rectangle
 
 ```python
 def draw(self, image, result):
@@ -241,7 +241,7 @@ def video_detect(self, cap):
 
 
 
-## how to save mp4
+# how to save mp4
 
 - [参考1](https://blog.csdn.net/qq_34106574/article/details/90265603) [参考2](https://blog.csdn.net/qq_36387683/article/details/91851206)
 - **`cv2.VideoCapture.get(propId)`** 访问视频的某些功能，其中propId是一个从0到18的数字，每个数字表示视频的属性（Property Identifier）。
@@ -340,3 +340,56 @@ cap.release() #关闭相机
 out.release()
 cv2.destroyAllWindows()
 ```
+
+
+
+# cv2.copyMakeBorder
+
+- [参考](https://www.jianshu.com/p/d9e982f6046a)
+
+src:源图像
+
+top,bottem,left,right: 分别表示四个方向上边界的长度
+
+borderType: 边界的类型
+ 有以下几种：
+
+- BORDER_REFLICATE　　　  # 直接用边界的颜色填充， aaaaaa | abcdefg | gggg
+- BORDER_REFLECT　　　　  # 倒映，abcdefg | gfedcbamn | nmabcd
+- BORDER_REFLECT_101　　 # 倒映，和上面类似，但在倒映时，会把边界空开，abcdefg | egfedcbamne | nmabcd
+- BORDER_WRAP　　　　  　# 额。类似于这种方式abcdf | mmabcdf | mmabcd
+- BORDER_CONSTANT　　　　# 常量，增加的变量通通为value色
+
+```python
+cv2.copyMakeBorder(src,top, bottom, left, right ,borderType,value)
+
+import cv2 as cv
+import numpy as np
+from matplotlib import pyplot as plt
+BLUE = [0,0,255]
+img1 = cv.imread('ai.jpg')
+
+# matplotlib 里的是 RGB，而opencv里的图片通道数据是 BGR
+b,g,r = cv.split(img1)
+img1 = cv.merge((r,g,b))
+
+replicate = cv.copyMakeBorder(img1,100,100,100,100,cv.BORDER_REPLICATE)
+reflect = cv.copyMakeBorder(img1,10,10,10,10,cv.BORDER_REFLECT)
+reflect101 = cv.copyMakeBorder(img1,10,10,10,10,cv.BORDER_REFLECT_101)
+wrap = cv.copyMakeBorder(img1,10,10,10,10,cv.BORDER_WRAP)
+constant= cv.copyMakeBorder(img1,50,50,10,10,cv.BORDER_CONSTANT,value=BLUE)
+
+plt.figure(figsize=(8,5))
+plt.subplot(231),plt.imshow(img1,'gray'),plt.title('ORIGINAL')
+plt.subplot(232),plt.imshow(replicate,'gray'),plt.title('REPLICATE')
+plt.subplot(233),plt.imshow(reflect,'gray'),plt.title('REFLECT')
+plt.subplot(234),plt.imshow(reflect101,'gray'),plt.title('REFLECT_101')
+plt.subplot(235),plt.imshow(wrap,'gray'),plt.title('WRAP')
+plt.subplot(236),plt.imshow(constant,'gray'),plt.title('CONSTANT')
+
+plt.tight_layout()
+
+plt.show()
+
+```
+

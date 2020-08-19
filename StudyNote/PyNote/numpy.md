@@ -772,3 +772,111 @@ array([[0, 2],
 
 ```
 
+
+
+# np.insert
+
+```python
+def insert(arr, obj, values, axis=None)
+    >>> a = np.array([[1, 1], [2, 2], [3, 3]])
+    >>> a
+    array([[1, 1],
+           [2, 2],
+           [3, 3]])
+    >>> np.insert(a, 1, 5)
+    array([1, 5, 1, ..., 2, 3, 3])
+    >>> np.insert(a, 1, 5, axis=1)
+    array([[1, 5, 1],
+           [2, 5, 2],
+           [3, 5, 3]])
+
+    Difference between sequence and scalars:
+
+    >>> np.insert(a, [1], [[1],[2],[3]], axis=1)
+    array([[1, 1, 1],
+           [2, 2, 2],
+           [3, 3, 3]])
+    >>> np.array_equal(np.insert(a, 1, [1, 2, 3], axis=1),
+    ...                np.insert(a, [1], [[1],[2],[3]], axis=1))
+    True
+
+    >>> b = a.flatten()
+    >>> b
+    array([1, 1, 2, 2, 3, 3])
+    >>> np.insert(b, [2, 2], [5, 6])
+    array([1, 1, 5, ..., 2, 3, 3])
+
+    >>> np.insert(b, slice(2, 4), [5, 6])
+    array([1, 1, 5, ..., 2, 3, 3])
+
+    >>> np.insert(b, [2, 2], [7.13, False]) # type casting
+    array([1, 1, 7, ..., 2, 3, 3])
+
+    >>> x = np.arange(8).reshape(2, 4)
+    >>> idx = (1, 3)
+    >>> np.insert(x, idx, 999, axis=1)
+    array([[  0, 999,   1,   2, 999,   3],
+           [  4, 999,   5,   6, 999,   7]])
+
+```
+
+# np.logspace
+
+- 创建等比数列， base^start -> base^stop  num个
+
+```python
+def logspace(start, stop, num=50, endpoint=True, base=10.0, dtype=None,
+             axis=0)
+
+    >>> y = np.linspace(start, stop, num=num, endpoint=endpoint)
+    ... # doctest: +SKIP
+    >>> power(base, y).astype(dtype)
+    ... # doctest: +SKIP
+
+    Examples
+    --------
+    >>> np.logspace(2.0, 3.0, num=4)
+    array([ 100.        ,  215.443469  ,  464.15888336, 1000.        ])
+    >>> np.logspace(2.0, 3.0, num=4, endpoint=False)
+    array([100.        ,  177.827941  ,  316.22776602,  562.34132519])
+    >>> np.logspace(2.0, 3.0, num=4, base=2.0)
+    array([4.        ,  5.0396842 ,  6.34960421,  8.        ])
+
+    Graphical illustration:
+
+    >>> import matplotlib.pyplot as plt
+    >>> N = 10
+    >>> x1 = np.logspace(0.1, 1, N, endpoint=True)
+    >>> x2 = np.logspace(0.1, 1, N, endpoint=False)
+    >>> y = np.zeros(N)
+    >>> plt.plot(x1, y, 'o')
+    [<matplotlib.lines.Line2D object at 0x...>]
+    >>> plt.plot(x2, y + 0.5, 'o')
+    [<matplotlib.lines.Line2D object at 0x...>]
+    >>> plt.ylim([-0.5, 1])
+    (-0.5, 1)
+    >>> plt.show()
+```
+
+
+
+# np.where
+
+- np.where(condition, x, y)
+
+满足条件(condition)，输出x，不满足输出y。
+
+```python
+>>> aa = np.arange(10)
+>>> np.where(aa,1,-1)
+array([-1,  1,  1,  1,  1,  1,  1,  1,  1,  1])  # 0为False，所以第一个输出-1
+>>> np.where(aa > 5,1,-1)
+array([-1, -1, -1, -1, -1, -1,  1,  1,  1,  1])
+
+>>> np.where([[True,False], [True,True]],    # 官网上的例子
+			 [[1,2], [3,4]],
+             [[9,8], [7,6]])
+array([[1, 8],
+	   [3, 4]])
+```
+
