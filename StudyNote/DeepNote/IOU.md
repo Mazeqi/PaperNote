@@ -11,6 +11,31 @@ $$
 IoU = \frac{B \cap B^{gt} }{B \cup B^{gt}}
 $$
 
+```python
+——————————
+|        |
+|	 ————|————
+_____|___|    |  
+     |        |
+     _________
+        
+'''
+    0,0 ------> x (width)
+     |
+     |  (Left,Top)
+     |      *_________
+     |      |         |
+            |         |
+     y      |_________|
+  (height)            *
+                (Right,Bottom)
+'''
+框的左上角为（xmin,ymin）右下角为（xmax,ymax）
+坐标从上往下，从左往右递增
+```
+
+
+
 - 计算输入值
   - x:表示box中心x坐标
   - y:表示box中心y坐标
@@ -107,6 +132,7 @@ $$
 - demo3
 
   ```python
+  # x y w h
   def jaccard(_box_a, _box_b):
       b1_x1, b1_x2 = _box_a[:, 0] - _box_a[:, 2] / 2, _box_a[:, 0] + _box_a[:, 2]/2
       b1_y1, b1_y2 = _box_a[:, 1] - _box_a[:, 3] / 2, _box_a[:, 1] + _box_a[:, 3]/2
@@ -134,7 +160,8 @@ $$
       union = area_a + area_b - inter
       return inter / union  # [A,B]
   ```
-
+```
+  
   
 
 # IoU loss
@@ -150,6 +177,9 @@ $$
 - GIou loss在IoU loss的基础上增加一个惩罚项，C为包围预测框$B$ 和$B^{gt}$ 的最小区域大小，当bbox的距离越大时，惩罚项将越大
 
 $$
+
+GIOU = IoU -\frac{|C - B \cup B^{gt}|}{| C |}
+\\
 \mathcal{L_{GIoU}} = 1 - IoU + \frac{|C - B \cup B^{gt}|}{| C |}
 $$
 
@@ -206,6 +236,8 @@ $$
 $$
 论文提出了能减少两个box中心点间的距离的惩罚项，$b$和$b^{gt}$分别表示$B$和$B^{gt}$的中心点。$\rho$是欧氏距离，是$c$是最小包围两个bbox的框的对角线长度
 $$
+DIOU = IOU- \frac{\rho^{2}(b, b^{gt})}{c^2}
+\\ 
 \mathcal{L}_{DIOU} = 1 - IOU+\frac{\rho^{2}(b, b^{gt})}{c^2} \tag{7}
 $$
 ![](./img/IOU_diou_rho.jpg)
@@ -236,6 +268,9 @@ $$
 
 论文考虑到bbox回归三要素中的长宽比还没被考虑到计算中，因此，进一步在DIoU的基础上提出了CIoU。其惩罚项如公式8，其中$\alpha$是权重函数，而$v$用来度量长宽比的相似性
 $$
+
+CIOU = IOU-\frac{\rho^{2}(b, b^{gt})}{c^2}-\alpha v, 
+\\
 \mathcal{L}_{CIOU} =1 - IOU+\frac{\rho^{2}(b, b^{gt})}{c^2}+\alpha v, \tag{10}
 $$
 完整的损失函数定义如公式10
@@ -246,9 +281,61 @@ $$
 $$
 \frac{\partial v}{\partial w} = \frac{8}{\pi^{2}}(\arctan\frac{w^{gt}}{h^{gt}}-\arctan\frac{w}{h}) \times\frac{h}{w^2+h^2},
 \\
-\frac{\partial v}{\partial h} = \frac{8}{\pi^{2}}(\arctan\frac{w^{gt}}{h^{gt}}-\arctan\frac{w}{h}) \times\frac{w}{w^2+h^2},
+\frac{\partial v}{\partial h} = \frac{8}{\pi^{2}}(\arctan\frac{w^{gt}}{h^{gt}}-\arctan\frac{w}{h}) \times\frac{w}{w^2+h^2},
 $$
 最后，CIoU loss的梯度类似于DIoU loss，但还要考虑$v$的梯度,在长宽为$[0,1]$的情况下，$w^2+h^2$的值通常会很小，会导致梯度爆炸，因此在实现时将$\frac{1}{w^2+h^2}$替换为1
+
+​```python
+def box_ciou(b1, b2):
+    """
+    输入为：
+    ----------
+    b1: tensor, shape=(batch, feat_w, feat_h, anchor_num, 4), xywh
+    b2: tensor, shape=(batch, feat_w, feat_h, anchor_num, 4), xywh
+
+    返回为：
+    -------
+    ciou: tensor, shape=(batch, feat_w, feat_h, anchor_num, 1)
+    """
+    # 求出预测框左上角右下角
+    b1_xy = b1[..., :2]
+    b1_wh = b1[..., 2:4]
+    b1_wh_half = b1_wh/2.
+    b1_mins = b1_xy - b1_wh_half
+    b1_maxes = b1_xy + b1_wh_half
+    # 求出真实框左上角右下角
+    b2_xy = b2[..., :2]
+    b2_wh = b2[..., 2:4]
+    b2_wh_half = b2_wh/2.
+    b2_mins = b2_xy - b2_wh_half
+    b2_maxes = b2_xy + b2_wh_half
+
+    # 求真实框和预测框所有的iou
+    intersect_mins = torch.max(b1_mins, b2_mins)
+    intersect_maxes = torch.min(b1_maxes, b2_maxes)
+    intersect_wh = torch.max(intersect_maxes - intersect_mins, torch.zeros_like(intersect_maxes))
+    intersect_area = intersect_wh[..., 0] * intersect_wh[..., 1]
+    b1_area = b1_wh[..., 0] * b1_wh[..., 1]
+    b2_area = b2_wh[..., 0] * b2_wh[..., 1]
+    union_area = b1_area + b2_area - intersect_area
+    iou = intersect_area / torch.clamp(union_area,min = 1e-6)
+
+    # 计算中心的差距
+    center_distance = torch.sum(torch.pow((b1_xy - b2_xy), 2), axis=-1)
+    
+    # 找到包裹两个框的最小框的左上角和右下角
+    enclose_mins = torch.min(b1_mins, b2_mins)
+    enclose_maxes = torch.max(b1_maxes, b2_maxes)
+    enclose_wh = torch.max(enclose_maxes - enclose_mins, torch.zeros_like(intersect_maxes))
+    # 计算对角线距离
+    enclose_diagonal = torch.sum(torch.pow(enclose_wh,2), axis=-1)
+    ciou = iou - 1.0 * (center_distance) / torch.clamp(enclose_diagonal,min = 1e-6)
+    
+    v = (4 / (math.pi ** 2)) * torch.pow((torch.atan(b1_wh[..., 0]/torch.clamp(b1_wh[..., 1],min = 1e-6)) - torch.atan(b2_wh[..., 0]/torch.clamp(b2_wh[..., 1],min = 1e-6))), 2)
+    alpha = v / torch.clamp((1.0 - iou + v),min=1e-6)
+    ciou = ciou - alpha * v
+    return ciou
+```
 
 
 
@@ -264,3 +351,4 @@ s_i=
 \end{cases}
 $$
 其中$s_i$是分类置信度，$\varepsilon$为nms阈值， $M$为最高置信度的框。DIOU-NMS倾向于中心点距离较远的box存在不同的对象，而且仅需改几行代码，DIoU-NMS就能够很简单地集成到目标检测算法中
+

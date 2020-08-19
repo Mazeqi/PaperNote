@@ -335,6 +335,14 @@ anchor_w = FloatTensor(scaled_anchors).index_select(1, LongTensor([0]))
 
 ```
 
+# torch.pow
+
+- 乘方
+
+```python
+torch.pow((b1_xy - b2_xy), 2)
+```
+
 
 
 
