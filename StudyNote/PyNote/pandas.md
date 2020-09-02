@@ -246,3 +246,13 @@ ValueError: labels ['B' 'C'] not contained in axis
 df["name"].unique()
 ```
 
+
+
+# read_excel
+
+```python
+ self.data_1_df = pd.read_excel('data/附件一：已结束项目任务数据.xls')
+ print(self.data_1_df.info())
+ print(self.data_1_df.head(10))
+```
+

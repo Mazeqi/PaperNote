@@ -478,7 +478,7 @@ $$
 
 ```python
 def Normalization(x):
-    return [(float(i)-min(x))/float(max(x)-min(x)) for i in x]
+    return [(float(i)-min(x))/float(max(x)-min( x)) for i in x]
     
 # 或者调用sklearn包的方法
 from sklearn import preprocessing   
