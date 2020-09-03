@@ -362,3 +362,346 @@ std::list<T> parallel_quick_sort(std::list<T> input)
 }
 ```
 
+
+
+# std::atomic_flag 实现自旋互斥锁
+
+```C++
+class spinlock_mutex
+{
+  std::atomic_flag flag;
+public:
+  spinlock_mutex():
+    flag(ATOMIC_FLAG_INIT)
+  {}
+  void lock()
+  {
+    while(flag.test_and_set(std::memory_order_acquire));
+  }
+  void unlock()
+  {
+    flag.clear(std::memory_order_release);
+  }
+};
+```
+
+
+
+#  不同线程对数据的读写
+
+- 假设你有两个线程，一个向数据结构中填充数据，另一个读取数据结构中的数据。为了避免恶性条件竞争，第一个线程设置一个标志，用来表明数据已经准备就绪，并且第二个线程在这个标志设置前不能读取数据。下面的程序清单就是这样的情况。
+
+```C++
+#include <vector>
+#include <atomic>
+#include <iostream>
+
+std::vector<int> data;
+std::atomic<bool> data_ready(false);
+
+void reader_thread()
+{
+  while(!data_ready.load())  // 1
+  {
+    std::this_thread::sleep(std::milliseconds(1));
+  }
+  std::cout<<"The answer="<<data[0]<<"\m";  // 2
+}
+void writer_thread()
+{
+  data.push_back(42);  // 3
+  data_ready=true;  // 4
+}
+```
+
+
+
+# 全序——序列一致
+
+- assert⑤语句是永远不会触发的，因为不是存储x的操作①发生，就是存储y的操作②发生。
+- 如果在read_x_then_y中加载y③返回false，那是因为存储x的操作肯定发生在存储y的操作之前，那么在这种情况下在read_y_then_x中加载x④必定会返回true，因为while循环能保证在某一时刻y是true。
+- 因为memory_order_seq_cst的语义需要一个单全序将所有操作都标记为memory_order_seq_cst，这就暗示着“加载y并返回false③”与“存储y①”的操作，有一个确定的顺序。只有一个全序时，，如果一个线程看到x= =true，随后又看到y==false，这就意味着在总序列中存储x的操作发生在存储y的操作之前。
+
+
+
+- 当然，因为所有事情都是对称的，所以就有可能以其他方式发生，比如，加载x④的操作返回false，或强制加载y③的操作返回true。在这两种情况下，z都等于1。当两个加载操作都返回true，z就等于2，所以任何情况下，z都不能是0。
+- 当read_x_then_y知道x为true，并且y为false，那么这些操作就有“先发执行”关系了，如图5.3所示。
+
+![](./img/thread_5_3_read_x_y.png)
+
+虚线始于read_x_then_y中对y的加载操作，到达write_y中对y的存储，其暗示了排序关系需要保持序列一致：在操作的全局操作顺序memory_order_seq_cst中，加载操作必须在存储操作之前发生，就产生了图中的结果。
+
+序列一致是最简单、直观的序列，但是他也是最昂贵的内存序列，因为它需要对所有线程进行全局同步。在一个多处理系统上，这就需要处理期间进行大量并且费时的信息交换。
+
+为了避免这种同步消耗，你需要走出序列一致的世界，并且考虑使用其他内存序列。
+
+```C++
+#include <atomic>
+#include <thread>
+#include <assert.h>
+
+std::atomic<bool> x,y;
+std::atomic<int> z;
+
+void write_x()
+{
+  x.store(true,std::memory_order_seq_cst);  // 1
+}
+
+void write_y()
+{
+  y.store(true,std::memory_order_seq_cst);  // 2
+}
+void read_x_then_y()
+{
+  while(!x.load(std::memory_order_seq_cst));
+  if(y.load(std::memory_order_seq_cst))  // 3
+    ++z;
+}
+void read_y_then_x()
+{
+  while(!y.load(std::memory_order_seq_cst));
+  if(x.load(std::memory_order_seq_cst))  // 4
+    ++z;
+}
+int main()
+{
+  x=false;
+  y=false;
+  z=0;
+  std::thread a(write_x);
+  std::thread b(write_y);
+  std::thread c(read_x_then_y);
+  std::thread d(read_y_then_x);
+  a.join();
+  b.join();
+  c.join();
+  d.join();
+  assert(z.load()!=0);  // 5
+}
+```
+
+
+
+# 自由序列
+
+在原子类型上的操作以自由序列执行，没有任何同步关系。在同一线程中对于同一变量的操作还是服从先发执行的关系，但是这里不同线程几乎不需要相对的顺序。**唯一的要求是，在访问同一线程中的单个原子变量不能重排序；**当一个给定线程已经看到一个原子变量的特定值，线程随后的读操作就不会去检索变量较早的那个值。当使用memory_order_relaxed，就不需要任何额外的同步，对于每个变量的修改顺序只是线程间共享的事情。
+
+这次assert⑤可能会触发，因为加载x的操作④可能读取到false，即使加载y的操作③读取到true，并且存储x的操作①先发与存储y的操作②。x和y是两个不同的变量，所以这里没有顺序去保证每个操作产生相关值的可见性。
+
+非限制操作对于不同变量可以自由重排序，只要它们服从任意的先发执行关系即可(比如，在同一线程中)。它们不会引入同步相关的顺序。清单5.5中的先发执行关系如图5.4所示(只是其中一个可能的结果)。尽管，在不同的存储/加载操作间有着先发执行关系，这里不是在一对存储于载入之间了，所以载入操作可以看到“违反”顺序的存储操作。
+
+```C++
+#include <atomic>
+#include <thread>
+#include <assert.h>
+
+std::atomic<bool> x,y;
+std::atomic<int> z;
+
+void write_x_then_y()
+{
+  x.store(true,std::memory_order_relaxed);  // 1
+  y.store(true,std::memory_order_relaxed);  // 2
+}
+void read_y_then_x()
+{
+  while(!y.load(std::memory_order_relaxed));  // 3
+  if(x.load(std::memory_order_relaxed))  // 4
+    ++z;
+}
+int main()
+{
+  x=false;
+  y=false;
+  z=0;
+  std::thread a(write_x_then_y);
+  std::thread b(read_y_then_x);
+  a.join();
+  b.join();
+  assert(z.load()!=0);  // 5
+}
+```
+
+
+
+# 非限制操作——多线程版
+
+```C++
+#include <thread>
+#include <atomic>
+#include <iostream>
+
+std::atomic<int> x(0),y(0),z(0);  // 1
+std::atomic<bool> go(false);  // 2
+
+unsigned const loop_count=10;
+
+struct read_values
+{
+  int x,y,z;
+};
+
+read_values values1[loop_count];
+read_values values2[loop_count];
+read_values values3[loop_count];
+read_values values4[loop_count];
+read_values values5[loop_count];
+
+void increment(std::atomic<int>* var_to_inc,read_values* values)
+{
+  while(!go)
+    std::this_thread::yield();  // 3 自旋，等待信号
+  for(unsigned i=0;i<loop_count;++i)
+  {
+    values[i].x=x.load(std::memory_order_relaxed);
+    values[i].y=y.load(std::memory_order_relaxed);
+    values[i].z=z.load(std::memory_order_relaxed);
+    var_to_inc->store(i+1,std::memory_order_relaxed);  // 4
+    std::this_thread::yield();
+  }
+}
+
+void read_vals(read_values* values)
+{
+  while(!go)
+    std::this_thread::yield(); // 5 自旋，等待信号
+  for(unsigned i=0;i<loop_count;++i)
+  {
+    values[i].x=x.load(std::memory_order_relaxed);
+    values[i].y=y.load(std::memory_order_relaxed);
+    values[i].z=z.load(std::memory_order_relaxed);
+    std::this_thread::yield();
+  }
+}
+
+void print(read_values* v)
+{
+  for(unsigned i=0;i<loop_count;++i)
+  {
+    if(i)
+      std::cout<<",";
+    std::cout<<"("<<v[i].x<<","<<v[i].y<<","<<v[i].z<<")";
+  }
+  std::cout<<std::endl;
+}
+
+int main()
+{
+  std::thread t1(increment,&x,values1);
+  std::thread t2(increment,&y,values2);
+  std::thread t3(increment,&z,values3);
+  std::thread t4(read_vals,values4);
+  std::thread t5(read_vals,values5);
+
+  go=true;  // 6 开始执行主循环的信号
+
+  t5.join();
+  t4.join();
+  t3.join();
+  t2.join();
+  t1.join();
+
+  print(values1);  // 7 打印最终结果
+  print(values2);
+  print(values3);
+  print(values4);
+  print(values5);
+}
+```
+
+
+
+# atomic
+
+- [参考](http://senlinzhan.github.io/2017/12/04/cpp-memory-order/)
+
+
+
+# **获取-释放序列**
+
+　　在这种模型下，`store()`使用`memory_order_release`，而`load()`使用`memory_order_acquire`。这种模型有两种效果，第一种是可以限制 CPU 指令的重排：
+
+- 在`store()`之前的所有读写操作，不允许被移动到这个`store()`的后面。
+- 在`load()`之后的所有读写操作，不允许被移动到这个`load()`的前面。
+
+```C++
+#include <atomic>
+#include <thread>
+#include <assert.h>
+
+std::atomic<bool> x,y;
+std::atomic<int> z;
+void write_x()
+{
+  x.store(true,std::memory_order_release);
+}
+void write_y()
+{
+  y.store(true,std::memory_order_release);
+}
+void read_x_then_y()
+{
+  while(!x.load(std::memory_order_acquire));
+  if(y.load(std::memory_order_acquire))  // 1
+    ++z;
+}
+void read_y_then_x()
+{
+  while(!y.load(std::memory_order_acquire));
+  if(x.load(std::memory_order_acquire))  // 2
+    ++z;
+}
+int main()
+{
+  x=false;
+  y=false;
+  z=0;
+  std::thread a(write_x);
+  std::thread b(write_y);
+  std::thread c(read_x_then_y);
+  std::thread d(read_y_then_x);
+  a.join();
+  b.join();
+  c.join();
+  d.join();
+  assert(z.load()!=0); // 3
+}
+```
+
+**获取-释放操作会影响序列中的释放操作**
+
+​        读取y③时会得到true，和存储时写入的一样②。因为存储使用的是memory_order_release，读取使用的是memory_order_acquire，存储就与读取就同步了。因为这两个操作是由同一个线程完成的，所以存储x①先行于加载y②。**对y的存储同步与对y的加载，存储x也就先行于对y的加载，并且扩展先行于x的读取。**因此，加载x的值必为true，并且断言⑤不会触发。如果对于y的加载不是在while循环中，那么情况可能就会有所不同；加载y的时候可能会读取到false，在这种情况下对于读取到的x是什么值，就没有要求了。为了保证同步，加载和释放操作必须成对。所以，无论有何影响，释放操作存储的值，必须要让获取操作看到。当存储如②或加载如③，都是一个释放操作时，对x的访问就无序了，也就无法保证④处读到的是true，并且还会触发断言。
+
+```C++
+#include <atomic>
+#include <thread>
+#include <assert.h>
+
+std::atomic<bool> x,y;
+std::atomic<int> z;
+
+void write_x_then_y()
+{
+  x.store(true,std::memory_order_relaxed);  // 1 
+  y.store(true,std::memory_order_release);  // 2
+}
+void read_y_then_x()
+{
+  while(!y.load(std::memory_order_acquire));  // 3 自旋，等待y被设置为true
+  if(x.load(std::memory_order_relaxed))  // 4
+    ++z;
+}
+int main()
+{
+  x=false;
+  y=false;
+  z=0;
+  std::thread a(write_x_then_y);
+  std::thread b(read_y_then_x);
+  a.join();
+  b.join();
+  assert(z.load()!=0);  // 5
+}
+```
+
