@@ -4,6 +4,24 @@
 
 - [参考](https://blog.csdn.net/RNG_uzi_/article/details/90034485)
 
+# cv image
+
+- h * w * n
+
+```python
+import numpy as np
+fn="baboon.jpg"
+if __name__ == '__main__':
+    print 'load %s as ...' % fn
+    img = cv2.imread(fn)
+    sp = img.shape
+    print sp
+    sz1 = sp[0]#height(rows) of image
+    sz2 = sp[1]#width(colums) of image
+    sz3 = sp[2]#the pixels value is made up of three primary colors
+    print 'width: %d \nheight: %d \nnumber: %d' %(sz1,sz2,sz3)
+```
+
 
 
 # cv2_PIL

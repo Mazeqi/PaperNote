@@ -39,3 +39,6 @@ Paper/Pose/everyone_dance/code/pytorch-EverybodyDanceNow/
 Paper/yolo/yolo_in_dark/code/Learning-to-See-in-the-Dark/
 Paper/yolo/yolo_in_dark/code/Exclusively-Dark-Image-Dataset/
 Paper/Pose/Openpose/code/pytorch_Realtime_Multi-Person_Pose_Estimation/
+Paper/Pose/everyone_dance/code/EverybodyDanceNow/
+Paper/Pose/everyone_dance/code/EverybodyDanceNow_reproduce_pytorch/
+*.zip
