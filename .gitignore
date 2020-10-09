@@ -42,3 +42,4 @@ Paper/Pose/Openpose/code/pytorch_Realtime_Multi-Person_Pose_Estimation/
 Paper/Pose/everyone_dance/code/EverybodyDanceNow/
 Paper/Pose/everyone_dance/code/EverybodyDanceNow_reproduce_pytorch/
 *.zip
+Paper/yolo/mobilenet-yolo/code/MobileNet-Yolo/
