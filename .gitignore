@@ -43,3 +43,5 @@ Paper/Pose/everyone_dance/code/EverybodyDanceNow/
 Paper/Pose/everyone_dance/code/EverybodyDanceNow_reproduce_pytorch/
 *.zip
 Paper/yolo/mobilenet-yolo/code/MobileNet-Yolo/
+Paper/cnn/fpn/code/FPN/
+Paper/EfficientDet/code/automl/
