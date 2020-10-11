@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "string": "cpp",
+        "valarray": "cpp",
+        "random": "cpp",
+        "vector": "cpp",
+        "xhash": "cpp",
+        "xlocale": "cpp",
+        "xmemory": "cpp",
+        "algorithm": "cpp",
+        "type_traits": "cpp",
+        "xutility": "cpp"
+    }
+}
