@@ -69,5 +69,9 @@ $$
 
 ​	   Third, unlike PANet that only has one top-down and one bottom-up path, we **treat each bidirectional(top-down & bottom-up) path as one feature network layer**, and repeat the same layer multiple times to enable more high-level feature fusion.
 
-​	
+### Weighted Feature Fusion
+
+​	since different input features are at different resolutions ,they usually contribute to the output feature unequally.
+
+​	**Add an additional weight for each input, and let the network to learn the importance of each input feature.**
 
