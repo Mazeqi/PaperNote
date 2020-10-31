@@ -135,9 +135,11 @@ for columns in ['timestamp','prior_question_elapsed_time']:
 def squeeze(embedding):
     embedding = tf.squeeze(embedding,axis=1)
     return embedding
+
 def concat(embedding_list):
     embedding = tf.concat(embedding_list, axis=1)
     return embedding
+    
 def multiply(multi_x_y):
     multi_x = multi_x_y[0]
     multi_y = multi_x_y[1]
