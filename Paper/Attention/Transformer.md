@@ -116,5 +116,105 @@ When the model is processing the word “it”, **self-attention allows it to as
 
 ​	The paper further refined the self-attention layer by adding a mechanism called “multi-headed” attention. This improves the performance of the attention layer in two ways:
 
-1. It expands the model’s ability to focus on different positions. Yes, in the example above, z1 contains a little bit of every other encoding, but it could be dominated by the the actual word itself. It would be useful if we’re translating a sentence like “The animal didn’t cross the street because it was too tired”, we would want to know which word “it” refers to.
-2. It gives the attention layer multiple “representation subspaces”. As we’ll see next, with multi-headed attention we have not only one, but multiple sets of Query/Key/Value weight matrices (the Transformer uses eight attention heads, so we end up with eight sets for each encoder/decoder). Each of these sets is randomly initialized. Then, after training, each set is used to project the input embeddings (or vectors from lower encoders/decoders) into a different representation subspace.
+1. It expands the model’s ability to **focus on different positions.** Yes, in the example above, z1 contains a little bit of every other encoding, but it could be dominated by the the actual word itself. It would be useful if we’re translating a sentence like “The animal didn’t cross the street because it was too tired”, **we would want to know which word “it” refers to.**
+2. It gives the attention layer multiple “representation subspaces”. As we’ll see next, with multi-headed attention we have not only one, but multiple sets of Query/Key/Value weight matrices (the Transformer uses eight attention heads, so we end up with eight sets for each encoder/decoder). **Each of these sets is randomly initialized.** Then, after training, each set is used to project the input embeddings (or vectors from lower encoders/decoders) into a different representation subspace.
+
+![](img/transformer_attention_heads_qkv.png)
+
+​	With multi-headed attention, we maintain separate Q/K/V weight matrices for each head resulting in different Q/K/V matrices. As we did before, we multiply X by the WQ/WK/WV matrices to produce Q/K/V matrices.
+
+​	If we do the same self-attention calculation we outlined above, just eight different times with different weight matrices, we end up with eight different Z matrices
+
+![](img/transformer_attention_heads_z.png)
+
+​	**This leaves us with a bit of a challenge.** The feed-forward layer is not expecting eight matrices – it’s expecting a single matrix (a vector for each word). **So we need a way to condense these eight down into a single matrix.**
+
+​	How do we do that? We concat the matrices then multiple them by an **additional weights matrix WO.**
+
+![](img/transformer_attention_heads_weight_matrix_o.png)
+
+​	That’s pretty much all there is to multi-headed self-attention. It’s quite a handful of matrices, I realize. Let me try to put them all in one visual so we can look at them in one place
+
+![](img/transformer_multi-headed_self-attention-recap.png)
+
+​	Now that we have **touched upon attention heads**, let’s revisit our example from before to see where the different attention heads are focusing as we encode the word “it” in our example sentence:
+
+![](img/transformer_self-attention_visualization_2.png)
+
+​	As we encode the word "it", one attention head is focusing most on "the animal", while another is focusing on "tired" -- in a sense, the model's representation of the word "it" bakes in some of the representation of both "animal" and "tired".
+
+​	If we add all the attention heads to the picture, however, things can be harder to interpret:
+
+![](img/transformer_self-attention_visualization_3.png)
+
+## Representing The Order of The Sequence Using Positional Encoding
+
+​	One thing that’s missing from the model as we have described it so far is a way to account for the order of the words in the input sequence.
+
+​	To address this, the transformer adds a vector to each input embedding. These vectors follow a specific pattern that the model learns, which helps it determine the position of each word, or the distance between different words in the sequence. The intuition here is that adding these values to the embeddings provides meaningful distances between the embedding vectors once they’re projected into Q/K/V vectors and during dot-product attention.
+
+![](img/transformer_positional_encoding_vectors.png)
+
+​	If we assumed the embedding has a dimensionality of 4, the actual positional encodings would look like this:
+
+![](img/transformer_positional_encoding_example.png)
+
+​	What might this pattern look like?
+
+​	In the following figure, each row corresponds the a positional encoding of a vector. So the first row would be the vector we’d add to the embedding of the first word in an input sequence. Each row contains 512 values – each with a value between 1 and -1. We’ve color-coded them so the pattern is visible.
+
+![](img/transformer_positional_encoding_large_example.png)
+
+​	A real example of positional encoding for 20 words (rows) with an embedding size of 512 (columns). You can see that it appears split in half down the center. That's because the values of the **left half are generated by one function** (which uses sine), and **the right half is generated by another function** (which uses cosine). They're then concatenated to form each of the positional encoding vectors.
+
+​	The formula for positional encoding is described in the paper (section 3.5). You can see the code for generating positional encodings in [`get_timing_signal_1d()`](https://github.com/tensorflow/tensor2tensor/blob/23bd23b9830059fbc349381b70d9429b5c40a139/tensor2tensor/layers/common_attention.py). This is not the only possible method for positional encoding. It, however, gives the advantage of being able to scale to unseen lengths of sequences (e.g. if our trained model is asked to translate a sentence longer than any of those in our training set).
+
+​	**July 2020 Update:** The positional encoding shown above is from the Tranformer2Transformer implementation of the Transformer. T**he method shown in the paper is slightly different in that it doesn’t directly concatenate, but interweaves the two signals.** The following figure shows what that looks like. [Here’s the code to generate it](https://github.com/jalammar/jalammar.github.io/blob/master/notebookes/transformer/transformer_positional_encoding_graph.ipynb):
+
+![](img/attention-is-all-you-need-positional-encoding.png)
+
+## The Residuals
+
+​	One detail in the architecture of the encoder that we need to mention before moving on, is that each sub-layer (self-attention, ffnn) in each encoder has a residual connection around it, and is followed by a [layer-normalization](https://arxiv.org/abs/1607.06450) step.
+
+![](img/transformer_resideual_layer_norm.png)
+
+​	If we’re to visualize the vectors and the layer-norm operation associated with self attention, it would look like this:
+
+![](img/transformer_resideual_layer_norm_2.png)
+
+​	This goes for the sub-layers of the decoder as well. If we’re to think of a Transformer of 2 stacked encoders and decoders, it would look something like this:
+
+![](img/transformer_resideual_layer_norm_3.png)
+
+## The Decoder Side
+
+​	Now that we’ve covered most of the concepts on the encoder side, we basically know how the components of decoders work as well. But let’s take a look at how they work together.
+
+​	The encoder start by processing the input sequence. The output of the top encoder is then transformed into a set of attention vectors K and V. These are to be used by each decoder in its “encoder-decoder attention” layer which helps the decoder focus on appropriate places in the input sequence:
+
+![](img/transformer_decoding_1.gif)
+
+​	**The following steps repeat the process until a special symbol is reached indicating the transformer decoder has completed its output.** The output of each step is fed to the bottom decoder in the next time step, and the decoders bubble up their decoding results just like the encoders did. And just like we did with the encoder inputs, we embed and add positional encoding to those decoder inputs to indicate the position of each word.
+
+![](img/transformer_decoding_2.gif)
+
+The self attention layers in the decoder operate in a slightly different way than the one in the encoder:
+
+In the decoder, the self-attention layer is only allowed to attend to earlier positions in the output sequence. This is done by masking future positions (setting them to `-inf`) before the softmax step in the self-attention calculation.
+
+The “Encoder-Decoder Attention” layer works just like multiheaded self-attention, except it creates its Queries matrix from the layer below it, and takes the Keys and Values matrix from the output of the encoder stack.
+
+
+
+## The Final Linear and Softmax Layer
+
+​	The decoder stack outputs a vector of floats. How do we turn that into a word? That’s the job of the final Linear layer which is followed by a Softmax Layer.
+
+​	The Linear layer is a simple fully connected neural network that projects the vector produced by the stack of decoders, into a much, much larger vector called a logits vector.
+
+​	Let’s assume that our model knows 10,000 unique English words (our model’s “output vocabulary”) that it’s learned from its training dataset. This would make the logits vector 10,000 cells wide – each cell corresponding to the score of a unique word. That is how we interpret the output of the model followed by the Linear layer.
+
+​	The softmax layer then turns those scores into probabilities (all positive, all add up to 1.0). The cell with the highest probability is chosen, and the word associated with it is produced as the output for this time step.
+
+![](img/transformer_decoder_output_softmax.png)
