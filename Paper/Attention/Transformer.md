@@ -191,7 +191,7 @@ When the model is processing the word “it”, **self-attention allows it to as
 
 ​	Now that we’ve covered most of the concepts on the encoder side, we basically know how the components of decoders work as well. But let’s take a look at how they work together.
 
-​	The encoder start by processing the input sequence. The output of the top encoder is then transformed into a set of attention vectors K and V. These are to be used by each decoder in its “encoder-decoder attention” layer which helps the decoder focus on appropriate places in the input sequence:
+​	The encoder start by processing the input sequence. The **output of the top encoder** is then transformed into a set of attention vectors K and V. These are to be used by each decoder in its “encoder-decoder attention” layer which helps the decoder focus on appropriate places in the input sequence:
 
 ![](img/transformer_decoding_1.gif)
 
@@ -199,11 +199,11 @@ When the model is processing the word “it”, **self-attention allows it to as
 
 ![](img/transformer_decoding_2.gif)
 
-The self attention layers in the decoder operate in a slightly different way than the one in the encoder:
+​	The self attention layers in the decoder operate in a slightly different way than the one in the encoder:
 
-In the decoder, the self-attention layer is only allowed to attend to earlier positions in the output sequence. This is done by masking future positions (setting them to `-inf`) before the softmax step in the self-attention calculation.
+​	In the decoder, the self-attention layer is only allowed to attend to earlier positions in the output sequence. This is done by masking future positions (setting them to `-inf`) before the softmax step in the self-attention calculation.
 
-The “Encoder-Decoder Attention” layer works just like multiheaded self-attention, except it creates its Queries matrix from the layer below it, and takes the Keys and Values matrix from the output of the encoder stack.
+​	The “Encoder-Decoder Attention” layer works just like multiheaded self-attention, except it creates its Queries matrix from the layer below it, and takes the Keys and Values matrix from the output of the encoder stack.
 
 
 
@@ -211,10 +211,72 @@ The “Encoder-Decoder Attention” layer works just like multiheaded self-atten
 
 ​	The decoder stack outputs a vector of floats. How do we turn that into a word? That’s the job of the final Linear layer which is followed by a Softmax Layer.
 
-​	The Linear layer is a simple fully connected neural network that projects the vector produced by the stack of decoders, into a much, much larger vector called a logits vector.
+​	The Linear layer is **a simple fully connected neural network** that projects the vector produced by the stack of decoders, into a much, much larger vector called a logits vector.
 
 ​	Let’s assume that our model knows 10,000 unique English words (our model’s “output vocabulary”) that it’s learned from its training dataset. This would make the logits vector 10,000 cells wide – each cell corresponding to the score of a unique word. That is how we interpret the output of the model followed by the Linear layer.
 
 ​	The softmax layer then turns those scores into probabilities (all positive, all add up to 1.0). The cell with the highest probability is chosen, and the word associated with it is produced as the output for this time step.
 
 ![](img/transformer_decoder_output_softmax.png)
+
+## Recap Of Training
+
+​	Now that we’ve covered the entire forward-pass process through a trained Transformer, it would be useful to glance at the intuition of training the model.
+
+​	During training, an untrained model would go through the exact same forward pass. But since we are training it on a labeled training dataset, we can compare its output with the actual correct output.
+
+​	To visualize this, let’s assume our output vocabulary only contains six words(“a”, “am”, “i”, “thanks”, “student”, and “<eos>” (short for ‘end of sentence’)).
+
+![](img/vocabulary.png)
+
+​	Once we define our output vocabulary, we can use a vector of the same width to indicate each word in our vocabulary. This also known as one-hot encoding. So for example, we can indicate the word “am” using the following vector:
+
+![](img/one-hot-vocabulary-example.png)
+
+​	**Following this recap**, let’s discuss the model’s loss function – the metric we are optimizing during the training phase to lead up to a trained and hopefully amazingly accurate model.
+
+## The Loss Function
+
+​	Say we are training our model. Say it’s our first step in the training phase, and we’re training it on a simple example – translating “merci” into “thanks”.
+
+​	What this means, is that we want the output to be a probability distribution indicating the word “thanks”. But since this model is not yet trained, that’s unlikely to happen just yet.
+
+![](img/transformer_logits_output_and_label.png)
+
+​	How do you compare two probability distributions? We simply subtract one from the other. For more details, look at [cross-entropy](https://colah.github.io/posts/2015-09-Visual-Information/) and [Kullback–Leibler divergence](https://www.countbayesie.com/blog/2017/5/9/kullback-leibler-divergence-explained).
+
+​	But note that this is an oversimplified example. More realistically, we’ll use a sentence longer than one word. For example – input: “je suis étudiant” and expected output: “i am a student”. What this really means, is that we want our model to successively output probability distributions where:
+
+- Each probability distribution is represented by a vector of width vocab_size (6 in our toy example, but more realistically a number like 30,000 or 50,000)
+- The first probability distribution has the highest probability at the cell associated with the word “i”
+- The second probability distribution has the highest probability at the cell associated with the word “am”
+- And so on, until the fifth output distribution indicates ‘`<end of sentence>`’ symbol, which also has a cell associated with it from the 10,000 element vocabulary.
+
+![](img/output_target_probability_distributions.png)
+
+​	After training the model for enough time on a large enough dataset, we would hope the produced probability distributions would look like this:
+
+![](img/output_trained_model_probability_distributions.png)
+
+​	Now, because the model produces the outputs one at a time, we can assume that the model is selecting the word with the highest probability from that probability distribution and throwing away the rest. That’s one way to do it (called greedy decoding). Another way to do it would be to hold on to, say, the top two words (say, ‘I’ and ‘a’ for example), then in the next step, run the model twice: once assuming the first output position was the word ‘I’, and another time assuming the first output position was the word ‘a’, and whichever version produced less error considering both positions #1 and #2 is kept. We repeat this for positions #2 and #3…etc. This method is called “beam search”, where in our example, beam_size was two (meaning that at all times, two partial hypotheses (unfinished translations) are kept in memory), and top_beams is also two (meaning we’ll return two translations). These are both hyperparameters that you can experiment with.
+
+## Go Forth And Transform
+
+I hope you’ve found this a useful place to start to break the ice with the major concepts of the Transformer. If you want to go deeper, I’d suggest these next steps:
+
+- Read the [Attention Is All You Need](https://arxiv.org/abs/1706.03762) paper, the Transformer blog post ([Transformer: A Novel Neural Network Architecture for Language Understanding](https://ai.googleblog.com/2017/08/transformer-novel-neural-network.html)), and the [Tensor2Tensor announcement](https://ai.googleblog.com/2017/06/accelerating-deep-learning-research.html).
+- Watch [Łukasz Kaiser’s talk](https://www.youtube.com/watch?v=rBCqOTEfxvg) walking through the model and its details
+- Play with the [Jupyter Notebook provided as part of the Tensor2Tensor repo](https://colab.research.google.com/github/tensorflow/tensor2tensor/blob/master/tensor2tensor/notebooks/hello_t2t.ipynb)
+- Explore the [Tensor2Tensor repo](https://github.com/tensorflow/tensor2tensor).
+
+Follow-up works:
+
+- [Depthwise Separable Convolutions for Neural Machine Translation](https://arxiv.org/abs/1706.03059)
+- [One Model To Learn Them All](https://arxiv.org/abs/1706.05137)
+- [Discrete Autoencoders for Sequence Models](https://arxiv.org/abs/1801.09797)
+- [Generating Wikipedia by Summarizing Long Sequences](https://arxiv.org/abs/1801.10198)
+- [Image Transformer](https://arxiv.org/abs/1802.05751)
+- [Training Tips for the Transformer Model](https://arxiv.org/abs/1804.00247)
+- [Self-Attention with Relative Position Representations](https://arxiv.org/abs/1803.02155)
+- [Fast Decoding in Sequence Models using Discrete Latent Variables](https://arxiv.org/abs/1803.03382)
+- [Adafactor: Adaptive Learning Rates with Sublinear Memory Cost](https://arxiv.org/abs/1804.04235)
