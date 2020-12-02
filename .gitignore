@@ -53,3 +53,6 @@ Paper/Attention/code
 Paper/Segment/U-net/code/baseline_segment_Resunet_pytorch/
 DockerLeaf
 Paper/GAN/code
+Paper/Attention/attention is all you need/code
+Paper/surface-detect/2019-TIP-Multistage GAN for fabric defect detection/code
+Paper/Attention/CBAM/code
