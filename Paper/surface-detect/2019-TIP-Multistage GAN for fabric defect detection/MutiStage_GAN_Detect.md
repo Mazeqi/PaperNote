@@ -74,8 +74,8 @@ B. Segmentation Network
 ![](img/DeepLab.png)
 
 - 为了在更深层保留feature maps 的大小，DeepLab 使用atrous convolution 而不是striding
-- 使用ResNet-50作为backbone network，然后atrous convolution被用来替代连续的striding，并且atrous rates根据需要的输出步值而设置
-- 部署一个 atrous spatial pyramid pooling (ASPP) 函数在feature map 的顶部。 函数包含了四个平行的、带有不同atrous rate的 atrous convolutions。为了提取global features, 一个方法是设置一个非常大的atrous rate，但是这样有可能造成filter被下降得更小，从而可能没有捕获到global information。因此，DeepLab给ASPP增加了一个全局信息分支，包含了average pooling， 1 * 1 conv， upsampling。
+- 使用ResNet-50作为backbone network，然后[atrous convolution](https://mp.weixin.qq.com/s/3bMvVYiXc7LulNoXw5duqA)被用来替代连续的striding，并且atrous rates根据需要的输出步值而设置
+- 部署一个  [atrous spatial pyramid pooling (ASPP)](https://zhuanlan.zhihu.com/p/141685352)函数在feature map 的顶部。 函数包含了四个平行的、带有不同atrous rate的 atrous convolutions。为了提取global features, 一个方法是设置一个非常大的atrous rate，但是这样有可能造成filter被下降得更小，从而可能没有捕获到global information。因此，DeepLab给ASPP增加了一个全局信息分支，包含了average pooling， 1 * 1 conv， upsampling。
 
 - 织物检测的三个问题：
 
@@ -94,6 +94,42 @@ C. Synthesizing Novel Defective Samples Using a Multistage GAN
 **stage1**
 
 - ‘style label’代表新织物样本的背景信息。收集新织物补丁作为stage 1的输入，他们从不带有defect的区域随机裁剪下来
-- 一个 pretrained 的 VGGNet被用来提取这些补丁的信息
-- 
+- 一个 pretrained 的 VGGNet被用来提取这些补丁的信息，然后，根据特征计算出Gram 矩阵，Gram矩阵被用作style labels(本文stage1采用的是condition-GAN，CGAN编码了类别信息，将特征当作类别输入CGAN)
+  - Gram :
 
+$$
+G^{\phi}(x) = \frac{\psi\psi^{T}}{CHW}
+$$
+
+- 将从原始图裁剪下来的real defect和它的style label 作为一个real pair，而一个生成的defect和它的style label 作为一个fake pair
+
+![](img/CGAN-loss.png)
+
+**Stage 2**
+
+- 训练集的defective 区域被挖掉，留下一个空白区域。然后生成的defect被resize然后贴到这些空白区域中，从而得到一张不完美的图
+
+- 接下来缺陷融合网络被训练来融合生成的defect到相应的背景中
+
+- 设计三个loss微调网络
+
+  - 由于没有理由假设生成的带缺陷图片与原始图是一样的，因此使用了一个Hinge reconstruction loss
+
+  $$
+  \mathcal{L}_{rec} = max(0, ||y - T(x) || - m) 
+  $$
+
+  
+  - impose a constraint on the feature map of fused patches extraced by a pretrained VGGNet and penalize it to be similar to the corresponding real patch. The feature reconstruction loss between the features of real and fake images：
+
+  $$
+  l_{feat}^{\phi,j}(T(X),y) = \frac{1}{C_jH_jW_j}||\phi(T(X)) - \phi(y)||^{2}_2
+  $$
+
+  - adversarial-loss(T()代表defect-fusing network、x和y分别代表不完美和训练样本)
+
+    ![](img/adversarial-loss.png)
+
+![](img/two-stage.png)
+
+![](img/result.png)

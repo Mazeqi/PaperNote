@@ -1,5 +1,21 @@
 [TOC]
 
+# install
+
+```
+# CUDA 9.2
+pip install torch==1.5.0+cu92 torchvision==0.6.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html
+
+
+# CUDA 9.2
+conda install pytorch==1.5.0 torchvision==0.6.0 cudatoolkit=9.2 -c pytorch
+
+# CUDA 9.2
+conda install pytorch==1.5.1 torchvision==0.6.1 cudatoolkit=9.2 -c pytorch
+```
+
+
+
 # image
 
 ```python
