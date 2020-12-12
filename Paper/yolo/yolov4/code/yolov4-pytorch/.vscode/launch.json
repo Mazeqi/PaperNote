@@ -1,0 +1,23 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: 当前文件",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["--source", "rtsp://admin:a12345678@192.168.0.111:554/Streaming/Channels/1/"],
+
+           // "args": ["--source", "rtsp://admin:1qaz@WSX@222.200.127.20:9003/Streaming/Channels/1", "--weights", "weights/best.pt", "--conf-thres", "0.6", "--iou-thres", "0.1", "--device", "0"],
+            //"args": ["--source", "test.list", "--weights", "weights/last.pt", "--conf", "0.1"],
+            //"args": ["--source", "dog.jpg", "--weights", "weights/yolov5x.pt", "--conf", "0.1"],
+            //"args": ["--data", "data/VOC2020.02.yaml", "--cfg", "models/VOC2020.02.yaml", "--weights", "weights/yolov5s.pt", "--batch-size", "64", "--device", "0,1", "--epochs", "100", "--resume"],
+            //"args": ["--data", "data/VOC2020.02.yaml", "--cfg", "models/VOC2020.02.yaml", "--weights", "weights/yolov5s.pt", "--batch-size", "64", "--device", "0,1", "--epochs", "5"],
+            "cwd": "${fileDirname}"
+        }
+    ]
+}

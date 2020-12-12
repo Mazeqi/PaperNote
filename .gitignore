@@ -21,7 +21,6 @@ StudyNote/CppNote/TinySTL/MyTinySTL
 StudyNote/CppNote/MyTinySTL/
 StudyNote/CppNote/SGI-STL/
 Paper/yolo/yolov3/code
-Paper/yolo/yolov4/code
 Paper/yolo/yolov4/img/yolov4-pytorch.zip
 Paper/yolo/yolov5/code
 some_pro_clone
@@ -59,3 +58,7 @@ Paper/Attention/CBAM/code
 Paper/Attention/Non-local neural networks/code
 Paper/Segment/DeepLab-V3/code
 StudyNote/DemoPy/VGG/pth/vgg19_bn-c79401a0.pth
+Paper/yolo/yolov4/code/faceData
+Paper/yolo/yolov4/code/human_counter_yolov4.rar
+Paper/yolo/yolov4/code/human_counter_yolov4/
+*.pth

@@ -29,7 +29,7 @@ parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of firs
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 parser.add_argument("--latent_dim", type=int, default=100, help="dimensionality of the latent space")
 parser.add_argument("--n_classes", type=int, default=10, help="number of classes for dataset")
-parser.add_argument("--img_size", type=int, default=[140, 20], help="size of each image dimension")
+parser.add_argument("--img_size", type=int, default=[100, 20], help="size of each image dimension")
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=400, help="interval between image sampling")
 opt, unknown = parser.parse_known_args()
@@ -99,7 +99,6 @@ class Discriminator(nn.Module):
         
         style_label = self.label_embedding(labels).flatten(2)
         style_label2 = style_label.permute(0, 2, 1)
-        
         style_label = torch.matmul(style_label, style_label2) / (512 * 7 * 7)
                        
         d_in = torch.cat((img.view(img.size(0), -1), style_label.view(labels.size(0), -1)), -1)
@@ -136,13 +135,13 @@ dataloader = torch.utils.data.DataLoader(
 )
 '''
 
-training_set = defect_patch_set(transform=transforms.Compose([transforms.Resize([140, 20]), 
+training_set = defect_patch_set(transform=transforms.Compose([transforms.Resize([opt.img_size[0], opt.img_size[1]]), 
                                                      transforms.ToTensor(),
-                                                     transforms.Normalize([0.5], [0.5])
+                                                     #transforms.Normalize([0.5], [0.5])
                                                     ])
                                 )
 
-dataloader = DataLoader(training_set, batch_size = 2, shuffle=True)
+dataloader = DataLoader(training_set, batch_size = 2, shuffle=True, drop_last = True)
 
 
 # Optimizers
@@ -166,13 +165,14 @@ def sample_image(n_row, batches_done):
     label_transform = transforms.Compose([
         transforms.Resize([224, 224]),
         transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        #transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
     ])
     
     label_bg_path = ['defect_patch_data/3_background/black.jpg', 'defect_patch_data/3_background/blue.jpg']
-    
+    i_label = batches_done % opt.sample_interval
+    #print(i_label)
     for i_index in range(n_row ** 2):
-        i_label = np.random.randint(0, 2)
+        #i_label = np.random.randint(0, 2)
         label_img = label_transform(Image.open(label_bg_path[i_label]))
         label_img = label_img.unsqueeze(0)
         if i_index == 0:
@@ -248,5 +248,8 @@ for epoch in range(opt.n_epochs):
         )
 
         batches_done = epoch * len(dataloader) + i
+        
         if batches_done % opt.sample_interval == 0:
+            sample_image(n_row=2, batches_done=batches_done)
+        elif batches_done % opt.sample_interval == 1:
             sample_image(n_row=2, batches_done=batches_done)
