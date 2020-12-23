@@ -65,3 +65,7 @@ Paper/detection/yolo/yolov5/code
 Paper/detection/yolo/yolov4/code/faceData
 Paper/detection/yolo/yolov4/code/human_counter_yolov4.rar
 Paper/detection/yolo/yolov4/code/human_counter_yolov4/
+Paper/detection/EfficientDet/code/EfficientNet-PyTorch/
+Paper/detection/EfficientDet/code/Yet-Another-EfficientDet-Pytorch/VOC2020.02/labels
+Paper/detection/EfficientDet/code/Yet-Another-EfficientDet-Pytorch/VOC2020.02/JPEGImages
+Paper/detection/EfficientDet/code/Yet-Another-EfficientDet-Pytorch/VOC2020.02/Annotations
