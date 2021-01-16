@@ -6,4 +6,6 @@
 - Paper  存放看过或者在看或者该看的论文
 - StudyNote  存放学习一些工具的笔记和一些小demo
 
-![](./img/floder_paper.png)
+![](./img/folder_paper.png)
+
+![](./img/folder_Somebook.png)
