@@ -124,8 +124,9 @@ class YOLO(object):
             
         output_list = []
         for i in range(3):
-            output_list.append(self.yolo_decodes[i](outputs[i]))
+            output_list.append(yolo_decodes[i](outputs[i]))
         output = torch.cat(output_list, 1)
+
         batch_detections = non_max_suppression(output, len(self.class_names),
                                                 conf_thres=self.confidence,
                                                 nms_thres=0.3)

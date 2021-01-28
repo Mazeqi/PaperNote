@@ -14,3 +14,14 @@
 
 我们休戚与共
 
+
+
+## A good neighbour is better than a  brother in the next village.
+
+远亲不如近邻
+
+
+
+## Since he is the leader, he is supposed to take the lead.
+
+既然他是领导，他就应该一马当先

@@ -22,6 +22,21 @@ conda install pytorch==1.5.1 torchvision==0.6.1 cudatoolkit=9.2 -c pytorch
 batch * c * h * w
 ```
 
+# load some state_dict
+
+- [link](https://blog.csdn.net/qq_34914551/article/details/87871134)
+
+```python
+path = 'xxx.pth'
+model = Net()
+save_model = torch.load(path)
+model_dict =  model.state_dict()
+state_dict = {k:v for k,v in save_model.items() if k in model_dict.keys()}
+print(state_dict.keys())  # dict_keys(['w', 'conv1.weight', 'conv1.bias', 'conv2.weight', 'conv2.bias'])
+model_dict.update(state_dict)
+model.load_state_dict(model_dict)
+```
+
 
 
 # device

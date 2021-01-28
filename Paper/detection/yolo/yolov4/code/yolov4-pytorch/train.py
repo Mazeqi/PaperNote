@@ -1,3 +1,4 @@
+# %load train.py
 #-------------------------------------#
 #       对数据集进行训练
 #-------------------------------------#
@@ -14,6 +15,7 @@ from torch.utils.data import DataLoader
 from utils.dataloader import yolo_dataset_collate, YoloDataset
 from nets.yolo_training import YOLOLoss,Generator
 from nets.yolo4 import YoloBody
+from utils.utils import non_max_suppression, bbox_iou, xywh2xyxy, box_iou, ap_per_class, DecodeBox
 
 
 #---------------------------------------------------#
@@ -64,6 +66,16 @@ def fit_ont_epoch(net,yolo_losses,epoch,epoch_size,epoch_size_val,gen,genval,Epo
         print('iter:' + str(iteration) + '/' + str(epoch_size) + ' || Total Loss: %.4f || %.4fs/step' % (total_loss/(iteration+1),waste_time))
         start_time = time.time()
 
+    #------------------------------------------
+    s = ('%20s' + '%12s' * 6) % ('Class', 'Images', 'Targets', 'P', 'R', 'mAP@.5', 'mAP@.5:.95')
+    p, r, f1, mp, mr, map50, map, t0, t1 = 0., 0., 0., 0., 0., 0., 0., 0., 0.
+    jdict, stats, ap, ap_class = [], [], [], []
+
+    iouv = torch.linspace(0.5, 0.95, 10).to(device)  # iou vector for mAP@0.5:0.95
+    # iouv = iouv[0].view(1)  # comment for mAP@0.5:0.95
+    niou = iouv.numel()
+
+    seen = 0
     print('Start Validation')
     for iteration, batch in enumerate(genval):
         if iteration >= epoch_size_val:
@@ -85,12 +97,96 @@ def fit_ont_epoch(net,yolo_losses,epoch,epoch_size,epoch_size_val,gen,genval,Epo
                 losses.append(loss_item[0])
             loss = sum(losses)
             val_loss += loss
+
+            #------------------------------
+            anchors = [10,14, 15,24, 19,10, 23,16, 31,32, 32,11, 35,18, 50,15, 83,19]
+            anchors = np.array(anchors).reshape([-1, 3, 2])[::-1,:,:]
+            
+            yolo_decodes = []
+            for i in range(3):
+                yolo_decodes.append(DecodeBox(anchors[i], 4,  (416, 416)))
+            
+            output_list = []
+            for i in range(3):
+                output_list.append(yolo_decodes[i](outputs[i]))
+            outputs = torch.cat(output_list, 1)
+            batch_detections = non_max_suppression(outputs, 4,
+                                            conf_thres=0.5,
+                                            nms_thres=0.3)
+
+        #-----------------------------------------------
+        nb, _, height, width = batch[0].shape  # batch size, channels, height, width
+        whwh = torch.Tensor([width, height, width, height]).to(device)
+
+        # Statistics per image
+        for si, pred in enumerate(batch_detections):
+            labels = targets_val[si]
+            nl = len(labels)
+            tcls = labels[:, -1].tolist() if nl else []  # target class
+            seen += 1
+            
+            if pred is None:
+                if nl:
+                    stats.append((torch.zeros(0, niou, dtype=torch.bool), torch.Tensor(), torch.Tensor(), tcls))
+                continue
+            
+            # Assign all predictions as incorrect
+            correct = torch.zeros(pred.shape[0], niou, dtype=torch.bool, device=device)
+            
+            if nl:
+                detected = []  # target indices
+                tcls_tensor = labels[:, -1]
+
+                # target boxes
+                tbox = xywh2xyxy(labels[:, 0:4]) * whwh
+
+                # Per target class
+                for cls in torch.unique(tcls_tensor):
+                    ti = (cls == tcls_tensor).nonzero().view(-1)  # prediction indices
+                    pi = (cls == pred[:, -1]).nonzero().view(-1)  # target indices
+
+                    # Search for detections
+                    if pi.shape[0]:
+                        # Prediction to target ious
+                        ious, i = box_iou(pred[pi, :4], tbox[ti]).max(1)  # best ious, indices
+
+                        # Append detections
+                        for j in (ious > iouv[0]).nonzero():
+                            d = ti[i[j]]  # detected target
+                            if d not in detected:
+                                detected.append(d)
+                                correct[pi[j]] = ious[j] > iouv  # iou_thres is 1xn
+                                if len(detected) == nl:  # all targets already located in image
+                                    break
+            
+            print(stats)
+            # Append statistics (correct, conf, pcls, tcls)
+            stats.append((correct.cpu(), pred[:, 4].cpu() * pred[:, 5].cpu(), pred[:, -1].cpu(), tcls))
+
+    # Compute statistics
+    stats = [np.concatenate(x, 0) for x in zip(*stats)]  # to numpy
+    if len(stats):
+        p, r, ap, f1, ap_class = ap_per_class(*stats)
+        p, r, ap50, ap = p[:, 0], r[:, 0], ap[:, 0], ap.mean(1)  # [P, R, AP@0.5, AP@0.5:0.95]
+        mp, mr, map50, map = p.mean(), r.mean(), ap50.mean(), ap.mean()
+        
+        ##########
+        nc = 4
+        nt = np.bincount(stats[3].astype(np.int64), minlength=nc)  # number of targets per class
+    else:
+        nt = torch.zeros(1)
+
+    # Print results
+    print(s)
+    pf = '%20s' + '%12.3g' * 6  # print format
+    print(pf % ('all', seen, nt.sum(), mp, mr, map50, map))
+    
     print('Finish Validation')
     print('\nEpoch:'+ str(epoch+1) + '/' + str(Epoch))
     print('Total Loss: %.4f || Val Loss: %.4f ' % (total_loss/(epoch_size+1),val_loss/(epoch_size_val+1)))
 
     print('Saving state, iter:', str(epoch+1))
-    torch.save(model.state_dict(), 'logs/Epoch%d-Total_Loss%.4f-Val_Loss%.4f.pth'%((epoch+1),total_loss/(epoch_size+1),val_loss/(epoch_size_val+1)))
+    torch.save(model.state_dict(), 'Shoe_Logs/Epoch%d-Total_Loss%.4f-Val_Loss%.4f.pth'%((epoch+1),total_loss/(epoch_size+1),val_loss/(epoch_size_val+1)))
 
 
 
@@ -118,12 +214,12 @@ if __name__ == "__main__":
     #-------------------------------#
     Use_Data_Loader = True
 
-    annotation_path = '2007_train.txt'
+    annotation_path = '../VOC2020.02/train.txt'
     #-------------------------------#
     #   获得先验框和类
     #-------------------------------#
     anchors_path = 'model_data/yolo_anchors.txt'
-    classes_path = 'model_data/voc_classes.txt'   
+    classes_path = '../VOC2020.02/Shoe_Label.txt'   
     class_names = get_classes(classes_path)
     anchors = get_anchors(anchors_path)
     num_classes = len(class_names)
