@@ -71,3 +71,7 @@ Paper/detection/EfficientDet/code/Yet-Another-EfficientDet-Pytorch/VOC2020.02/JP
 Paper/detection/EfficientDet/code/Yet-Another-EfficientDet-Pytorch/VOC2020.02/Annotations
 PaperWrite
 SomeBook/clone/recommended-books/
+Paper/Attention/AFF/code/
+Paper/detection/yolo/yolov4/code/
+Paper/cnn/RepVGG Making VGG-style ConvNets Great Again/code/
+Paper/Attention/SA-NET/code/
