@@ -6,6 +6,7 @@ import json
 import collections
 from gensim.models import KeyedVectors
 from annoy import AnnoyIndex
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # 爬取的内容
 INPUT_RAW = r"content/QS_content.txt"
@@ -25,7 +26,8 @@ INDEX_SAVE = r"content/annoy.index"
 # k-近邻新词
 NEW_WORD_SAVE = r"content/new_word.txt"
 
-
+# tf_df 新词
+NEW_WORD_Tf_SAVE = r"content/new_tf_word.txt"
 '''
     步骤一 对文本内容进行分词
 '''
@@ -167,18 +169,61 @@ def get_new_word():
         fout.write(line_str)
     fout.close
 
+'''
+TF（词频）的计算很简单，就是针对一个文件t，某个单词Nt 出现在该文档中的频率。
+比如文档“I love this movie”，单词“love”的TF为1/4。如果去掉停用词“I”和”it“，则为1/2。
+
+IDF（逆向文件频率）的意义是，对于某个单词t，凡是出现了该单词的文档数Dt，占了全部测试文档D的比例，
+再求自然对数。比如单词“movie“一共出现了5次，而文档总数为12，因此IDF为ln(5/12)
+
+'''
 def get_DF_TF():
-    pass
-    NEW_WORD_SAVE
+    min_tf_df = 0.0001
+
+    with open(NEW_WORD_SAVE, 'r', encoding='utf8') as f:
+        res = f.read()
+    
+    vector = TfidfVectorizer()
+    tf_idf = vector.fit_transform([res])
+
+    word_list = vector.get_feature_names()      # 获取词袋模型的所有词
+    weight_list = tf_idf.toarray()
+
+    fout = codecs.open(NEW_WORD_Tf_SAVE, "w", encoding="utf8")
+    # 打印每类文本的tf-idf词语权重，第一个for遍历所有文本，第二个for便利某一类文本下的词语权重
+    for i in range(len(weight_list)):
+        print("-------第", i+1, "段文本的词语tf-idf权重------")
+        for j in range(len(word_list)):
+            print(word_list[j], weight_list[i][j])
+
+            if weight_list[i][j] >= min_tf_df:
+                line_str = word_list[j] + '\n'
+                fout.write(line_str)
+    fout.close
+
 
     
 if __name__ == "__main__":
 
     # 一个步骤一个步骤执行
 
+    # 分词
     #DivideWord()
+
+    # 词向量
     #OutVec()
+
+    # 生成json 索引
     #JsonIndex()
+
+    # 生成annoy索引
     #AnnoyIndex()
+
+    # 测试annoy
     #RunAnnoy()
-    get_new_word()
+
+    # 得到k近邻新词
+    #get_new_word()
+
+    # 得到满足df-idf条件的新词
+    get_DF_TF()
