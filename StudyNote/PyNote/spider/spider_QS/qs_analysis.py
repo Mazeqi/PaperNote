@@ -79,7 +79,7 @@ def OutVec():
     w2v = Word2Vec(sg=1, sentences=LineSentence(fin), min_count=1, vector_size=50, epochs=2 ,window=5)
     w2v.wv.save_word2vec_format(OUTPUT_VEC, binary=True)
     fin.close()
-
+    
 
 '''
     步骤三 对词向量进行json索引
