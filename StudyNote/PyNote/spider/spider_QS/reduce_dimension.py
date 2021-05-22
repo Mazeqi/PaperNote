@@ -20,6 +20,8 @@ def recommend(if_show = False, newInput = "", k = 3):
     # json索引
     WORD_INDEX = r"content/wordindex.json"
 
+    RECOMEND_WORD = r"content/recommendWords.txt"
+
     model = KeyedVectors.load_word2vec_format(OUTPUT_VEC, binary=True)
 
     # extract all vectors
@@ -99,14 +101,21 @@ def recommend(if_show = False, newInput = "", k = 3):
     sortedDistIndices = argsort(distance)
 
     k_recommend = []
+    fout = codecs.open(RECOMEND_WORD, "w", encoding="utf8")
     for i in range(k):
         # # step 3: 选择k个最近邻
         word = indexWord[sortedDistIndices[i]]
 
         k_recommend.append(word)
 
+        fout.write(word + " ")
+        if i % 10 == 0:
+            fout.write("\n")
+
+    fout.close()
+
     return k_recommend
 
 if __name__ == "__main__":
-    words = recommend(if_show = False, newInput = "梦若", k = 3)
+    words = recommend(if_show = False, newInput = "梦若", k = 50)
     print(words)
