@@ -117,5 +117,5 @@ def recommend(if_show = False, newInput = "", k = 3):
     return k_recommend
 
 if __name__ == "__main__":
-    words = recommend(if_show = False, newInput = "梦若", k = 50)
+    words = recommend(if_show = True, newInput = "梦若", k = 50)
     print(words)

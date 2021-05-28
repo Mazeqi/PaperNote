@@ -1,0 +1,5 @@
+​	A famous person I like is Stephen Curry. He's a 3-time NBA champion and the star point guard of the Golden State Warriors. I first became interested in him in 2015 when his team improved greatly and won their first championship. I was rooting for him at the time because his team was the underdog against Lebron  James' Cavaliers.
+
+​	I'm not really sure what he was like before he became very popular as there wasn't much focus on him back then. From what I know, he is the son of an NBA player, so he must have had a good life from the start. I've read that he is a lot humbler than the usual NBA stars as he doesn't brag much.
+
+​	And I guess this is one reason why I'm interested in him. Another reason is that he can defeat opponents who are much bigger than him. Stephen is not as tall and strong as the usual dominant players, but he is fast and a great shooter. I guess that I identify with him as I'm also not as physically intimidating, but I can win in games or other aspects of life by using my brain and quickness.
