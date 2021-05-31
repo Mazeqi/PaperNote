@@ -1,0 +1,7 @@
+The corporation that I know about is Tencent. It's a Chinese tech company that's involved in a variety of technology-related endeavors. I believe they are into gaming, music, social media and platforms, and online payment systems. WeChat, the popular social media app, was developed by them. So you can say they're as big as Facebook probably even bigger because of all its other services.
+
+I'm not exactly sure how many people it employs. But based on all the things they do, they must have got at least ten thousand people working for them. It's difficult to make such applications and test them and market them in a short period of time, so there's a lot of people there.
+
+I believe most of their employees are computer specialists since that is their focus. Plus, they also have support services for other employees like accountants, secretaries, marketing people, and so on. I've heard that the majority of staff there are graduates from prestigious universities in China and abroad. I guess you can say that you'll often come across smart people in the company.
+
+As for how I feel, well, I love many of their services. I think they've been doing a good job in providing Chinese people the services that we need. So I hope they keep innovating so that our lives keep improving.
