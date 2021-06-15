@@ -1,0 +1,5 @@
+A distant plan that I have is to one day have my own retirement home by the beach. I guess I came up with this after watching a lot of TV shows where rich people are happily lazing in their own beach home. I've always loved the beach. So when I saw such people enjoying life near the sea, I felt quite envious. But I also realized that this could become a reality after visiting my aunt's home in the southern part of China. She lives near the ocean, so I realized it's possible.
+
+To achieve this, I obviously need a good degree and a very good job. This is one reason why I'm taking IELTS  so that I can study abroad. I'm hoping that after a decade or so working abroad. I'll have enough money to build my retirement home.
+
+If I'm able to accomplish my goal, I will surely feel proud of myself that I achieved it on my own. Not everyone gets to have a beach house of their own. And I hope my future family also be proud of me since they'll have a beautiful place to relax and enjoy nature.

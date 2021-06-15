@@ -1,0 +1,6 @@
+- 技术社区
+  - https://harmonyos.51cto.com/#bky
+- 开发平台
+  - https://developer.huawei.com/consumer/cn/deveco_studio
+- 文档
+  - https://developer.harmonyos.com/cn/docs/documentation/doc-guides/harmonyos-overview-0000000000011903

@@ -1,0 +1,6 @@
+An argument between two friends that I remember hearing occurred in high school. I believe it was our final year in school. Two of my good friends， Jack and Philip, were partners for a project in history. They were supposed to report on the life of an emperor in ancient China, but Jack was too busy helping with the family business that he asked Philip to do most of the research for the project. Unfortunately, Philip refused because he had to deal with other assignments of his. If neither of them was willing to do the research, they would very likely end up with a low grade and their overall grades would be affected largely.
+
+I acted as a mediator, trying to get both of them to reconcile. I told Jack that he really needed to take his responsibility because it was a serious matter for Philip. Philip's family isn't as rich as Jack's,so he had no backup plans. He really needed to get into a good university. Thankfully, Jack agreed to try his best. Although the result was still frustrating, they both spoke to the teacher about what happened. Our teacher the gave an extra credit project, allowing Philip to somehow pull his grade up.
+
+Naturally, I felt happy that my two friends made up and that I played a part in it. Similar to a family squabble, it hurts when friends have a major disagreement.
+

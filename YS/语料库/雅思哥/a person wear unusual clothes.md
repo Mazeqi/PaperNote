@@ -1,4 +1,4 @@
-​	Someone I personally know who wears unusual clothing is my uncle. He's the older brother of my mom. I've known my uncle ever since I was a kid.
+Someone I personally know who wears unusual clothing is my uncle. He's the older brother of my mom. I've known my uncle ever since I was a kid.
 
 ​	The reason why I think he dresses strangely is that most of his clothes are quite old-fashioned, and they often do not match. Around the house, he wears the same white shirt and blue shorts, like every time! I thought before that he just wore his clothes for an entire week, but it turns out that he has several pairs of the same type of clothing.
 

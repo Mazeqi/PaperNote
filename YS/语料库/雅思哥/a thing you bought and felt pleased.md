@@ -1,0 +1,5 @@
+I recently decided that I would like to learn a new craft. After a little bit of research online, I decided to buy a new crafting tool called a punch needle. I bought it from an online store that sells many craft goods and handmade objects.
+
+Punch needles are used to do punch needle embroidery. My punch needle is  wooden hand-held tool which can be threaded with a thick yarn. It is then used to repeatedly push through a piece of woven material, leaving small loops of yarn on the other side. This craft is most commonly used to make rugs and carpets, but you can also make wall hanging, pillows, bags, soft toys and many other material items.
+
+I was so pleased with this purchase because it works exactly as it is supposed to, and punch needling is such a fun and easy craft to learn. The needle I bought is called an Oxford punch needle and it is named after the person who designed it. It is beautifully carved and fits very comfortably in my hand. Since buying it, I have already designed and made my own doormat, and I have plans to make a large rug next.

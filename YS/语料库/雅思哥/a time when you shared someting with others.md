@@ -1,0 +1,5 @@
+One time, I was asked to share my food. It was a meal my mum had packed in a lunchbox consisting of sandwiches, fried chicken wings, and a few chocolate bars. Since I had a fieldtrip to the zoo that day with my classmates, I brought some food along because I knew I would get hungry. Around noon time, we had finally finished walking around the entire zoo. It was time for lunch, and I ended up sharing my meal with my best friend. In her excitement, she had forgotten to bring food with her to zoo.
+
+Even though I was famished, I knew my best friend was starving too. She looked at me as I took my first bite with longing sad eyes. Because she was someone I genuinely cared about, I decided to hand her a sandwich, a fired chicken wing and one chocolate bar. It was not enough to fill her up, but her stomach was no longer grumbling.
+
+Despite not being able to enjoy the meal all by myself, I surprisingly felt very happy and fulfilled. I knew that I had done a good deed and helped someone out. A little kindness goes a long way.

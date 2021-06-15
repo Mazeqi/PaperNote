@@ -1,0 +1,5 @@
+Last year, my dad surprised me by letting me know that he had purchased tickets for a football match that was going to be held the next week. As a big football fan, I was elated that I would get to see my favorite team play in person.
+
+It was a fun day and I remember it quite clearly. We got there early and the stadium was already packed. It was such a thrilling experience to actually get to see the match being played right in front of me. The action, the noise, the intensity of the match, were all quite exciting. I was also happy because I got to enjoy this day with my dad.
+
+By the end of the day, I had cheered so much that my throat had become sore. In the end, my team ended up losing 2-1. It wasn't the result I was hoping for, but I enjoyed the fact that I got to meet one of my favorite players in person and he even agreed to give me his autograph, which I still have with me to this day. I feel I'll always remember this day fondly.
