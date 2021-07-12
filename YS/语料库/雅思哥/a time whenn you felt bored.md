@@ -1,0 +1,5 @@
+Recently I had a quite boring meeting with my friends. Since I love face-to-face communication, I often try to meet up with them. So I arranged to meet two friends for a cup of coffee on the weekend. We try to stay up to date with our personal and professional lives.
+
+I was extremely excited to see them because we hadn't seen each other for quite some time. However, in the end, I was rather disappointed by the meet-up. Instead of putting away their phones, my friends seemed absent from the conversation because they were constantly chatting with some people on their phones. So, whenever I started a conversation about something, they interrupted me with phone calls and texts.
+
+I realized that they were only physically present at the cafe, but mentally they were all over the place. I was really bored because I didn't see the point of meeting up without talking, while making an eye-contact. In a way, I felt sorry for them because they didn't realize that real friendships can be destroyed in this way. Finally, I decided to leave because I didn't want to waste any more of my time. I'm not sure that they cared too much since they kept scrolling on their phones.

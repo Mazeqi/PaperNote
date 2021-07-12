@@ -1,0 +1,5 @@
+I've been suffering from toothaches for a while now and I was told by my dentist that I'd have to go see her on a weekly basis. In my opinion, it's the most annoying time of the week.
+
+I go there every Saturday morning. There are many things that I don't like about these visits. First of all, it takes forever for me to get the clinic, so that by the time I get there, I'm already exhausted. Then, I usually have to wait for my turn, which can take long sometimes. Of course, the most major issue that I have with these visits to the dental clinic is how much pain and discomfort I feel during the session itself. It can sometimes last for hours.
+
+After the procedures are done, I'm usually pretty tired, but I still have to make it all the way back home, and by the time I get back, I feel a large part of the day has already passed and I don't really feel like doing anything. I look forward to when I won't have to make these weekly trips to the dentists.

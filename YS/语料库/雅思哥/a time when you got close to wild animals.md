@@ -1,0 +1,5 @@
+There was  a time last year when my friends and I went hiking in the forest near my grandparents' house. It's a quiet woodland filled with lots of flowering trees.
+
+As we were walking, we saw some deer and a lot of beautiful birds. The deer were grazing among the grass and plants near the foot of the trees. But when they saw us, they bolted away. The birds, however, generally kept chirping and flying between the trees as they probably knew they were too high up for us to do anything.
+
+My two school friends who were with me were amazed by the sights and sounds. They have always lived in the city, so their only wildlife encounters are with animals in a zoo. So it was a great time for them. As for me, I was also in awe of nature, and I was thankful to have shared such a moment with my best friends. I could see the joy in their eyes when they saw the deer and heard the birds. After the hike, they told me that they'd like to do that again, but in winter so they can experience the snow in the forest.

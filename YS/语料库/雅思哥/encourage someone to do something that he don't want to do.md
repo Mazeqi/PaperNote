@@ -1,0 +1,5 @@
+This occurred in my last year of high school when I encourage my friend Sam to join a study group. At the time, nearly all of us in school had difficulty in our subjects. While many classmates had tutors after schools, some of us did not and just studied on our own. But because the lessons were so hard, I decided to form a study group. So I tried recruiting Sam to the group because he was good in history but had difficulty with math.
+
+However, his initial response was that he wasn't interested. He first said that the schedule was the problem, but then he let slip that he didn't know the others, so he felt awkward. I told him that many in the 
+
+group were just acquaintances and that I was the key person that everyone knew, so he wasn't the only "new guy" in the group. I said that we needed his history expertise and that he could benefit from the members that are good at math. Fortunately, he accepted and joined us two weeks later. His knowledge of history helped us a lot, and he was able to pass math because of the help of others. It was a win-win for everybody.

@@ -1,0 +1,5 @@
+I think it was just last month when I made a promise to my younger cousin that I would help him with his project.
+
+He's not very good at using photo editing applications, so I said I would assist him. It was for a personal project of his that was meant for one of his crushes at school.  I was able to fulfill my promise to him, but it did make life more difficult for me. When I first told him that I would help, I didn't have a heavy workload at school But then my teacher in history assigned a report which was due the day after I told my cousin I would visit. I mean the history paper was assigned on Wednesday and was due on Friday, but I needed to visit my cousin Thursday afternoon.
+
+Because I didn't want to let my cousin down as we are quite close, I stayed up late for two days just to finish my history assignment. So I ended up sleeping very late Wednesday night and Thursday night to complete my history paper. Because of the lack of sleep, I got sick for a day or two, but at least I had kept my promise.
